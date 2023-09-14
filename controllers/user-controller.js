@@ -66,7 +66,7 @@ class UserController {
                     return res.redirect("/index");
             }
             //console.log(userData.user.status);
-            res.cookie('accessToken', userData.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true, secure: true});
+            res.cookie('accessToken', userData.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true});
             res.cookie('refreshToken', userData.refreshToken, {
                 maxAge: 1000 * 60 * 60 * 24 * 7,
                 httpOnly: true,
@@ -508,7 +508,7 @@ class UserController {
             //console.log(`access token - ${token.accessToken} :: ${token.refreshToken} -- valid -- ${tokenService.validateRefreshToken(token.refreshToken)}`);
             console.log(`find - ${await tokenService.findToken(token.refreshToken)}`);///
             try {
-                res.cookie('accessToken', token.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true, secure: true});
+                res.cookie('accessToken', token.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true});
                 res.cookie('refreshToken', token.refreshToken, {
                     maxAge: 1000 * 60 * 60 * 24 * 7,
                     httpOnly: true,
