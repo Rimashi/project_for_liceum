@@ -4,179 +4,126 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css?family=Roboto:regular,500,700&display=swap" rel="stylesheet"/>
-
-
-    <link href="https://fonts.googleapis.com/css?family=Ubuntu:700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:regular,500,700&display=swap" rel="stylesheet" />
+    
+    
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu:700&display=swap" rel="stylesheet" />
     <title>Главная страница старосты</title>
 </head>
 <body>
-<div class="wrapper">
+    <div class="wrapper">
 
-    <header class="header">
-        <div class="header__container _container">
-            <a href="/leader" class="header__logo logo">
-                <div class="logo__img"><img src="img/header/Logo.svg" alt="Logo"></div>
-                <div class="logo__text">ийский Лицей</div>
-            </a>
-            <div class="header__actions header-action">
-                <div class="header-action__name-account">Староста 11В</div>
-                <div class="header-action__burger burger">
-                    <div class="burger__icon">
-                        <span></span>
-                    </div>
-                    <nav class="burger__menu">
-                        <ul class="burger__list">
-                            <li><a href="/schedule" class="burger__link">Расписание</a></li>
-                            <li><a href="" class="burger__link">Карта</a></li>
-                            <li><a href="/subject" class="burger__link">Предметы</a></li>
-                            <li><a href="/info" class="burger__link">Информация</a></li>
-                        </ul>
-                    </nav>
-                </div>
-                <button class="header-action__unlogin-button unlogin-button">Выйти</button>
-            </div>
-        </div>
-    </header>
+        <%- include partials/header-user.ejs %>
 
 
-    <main class="page">
-        <div class="page__container _container">
-            <div class="page__main-block main-block">
-                <div class="main-block__left-block-user left-block-user">
-                    <div class="left-block-user__function-leader-button function-leader-button">
-                        <button class="function-leader-button__button-add-hometask button-add-hometask _leader-button">
-                            Добавить ДЗ
-                        </button>
-                        <button class="function-leader-button__button-check-hometask button-check-hometask _leader-button">
-                            Проверить ДЗ
-                        </button>
-                        <button class="function-leader-button__button-add-notice button-add-notice _leader-button">
-                            Создать уведомление
-                        </button>
-                        <button class="function-leader-button__button-add-event button-add-event _leader-button">Создать
-                            событие
-                        </button>
-                    </div>
-                    <div class="left-block-user__leader-notice leader-notice">
-                        <h2 class="leader-notice__title-leader-notice">Уведомление от старост</h2>
-                    </div>
-                    <div class="left-block-user__hometask-for-days hometask-for-days">
-                        <h2 class="hometask-for-days__title-hometask-for-days">Дз на близжайшие дни</h2>
-                        <div class="hometask-for-days__hometask-for-day hometask-for-day">
-                            <div class="hometask-for-day__date">25.04</div>
-                            <div class="hometask-for-day__subject">Русский яз:</div>
-                            <div class="hometask-for-day__task">номера 13-14</div>
+        
+        <main class="page">
+            <div class="page__container _container">
+                <div class="page__main-block main-block">
+                    <div class="main-block__left-block-user left-block-user">
+                        <div class="left-block-user__function-leader-button function-leader-button">  
+                            <button class="function-leader-button__button-add-hometask button-add-hometask _leader-button">Добавить ДЗ</button>
+                            <button class="function-leader-button__button-check-hometask button-check-hometask _leader-button">Проверить ДЗ</button>
+                            <button class="function-leader-button__button-add-notice button-add-notice _leader-button">Создать уведомление</button>
+                            <button class="function-leader-button__button-add-event button-add-event _leader-button">Создать событие</button>
                         </div>
-                        <div class="hometask-for-days__hometask-for-day hometask-for-day">
-                            <div class="hometask-for-day__date">25.04</div>
-                            <div class="hometask-for-day__subject">Русский яз:</div>
-                            <div class="hometask-for-day__task">номера 13-14</div>
+                        <div class="left-block-user__leader-notice leader-notice">
+                            <h2 class="leader-notice__title-leader-notice">Уведомление от старост</h2>
+                            <div class="leader-notice__list-leader-notice list-leader-notice">
+                                <% if (notification !== "none"){ %>
+                                    <% for (let i in notification){ %>
+                                        <div class="list-leader-notice__leader-notice">
+                                            <%= i.text %>
+                                        </div>
+                                <% }} %>
+                            </div>
                         </div>
-                        <div class="hometask-for-days__hometask-for-day hometask-for-day">
-                            <div class="hometask-for-day__date">25.04</div>
-                            <div class="hometask-for-day__subject">Русский яз:</div>
-                            <div class="hometask-for-day__task">номера 13-14</div>
-                        </div>
-                        <div class="hometask-for-days__hometask-for-day hometask-for-day">
-                            <div class="hometask-for-day__date">25.04</div>
-                            <div class="hometask-for-day__subject">Русский яз:</div>
-                            <div class="hometask-for-day__task">номера 13-14</div>
-                        </div>
-                        <div class="hometask-for-days__hometask-for-day hometask-for-day">
-                            <div class="hometask-for-day__date">25.04</div>
-                            <div class="hometask-for-day__subject">Русский яз:</div>
-                            <div class="hometask-for-day__task">номера 13-14</div>
+                        <div class="left-block-user__hometask-for-days hometask-for-days">
+                            <h2 class="hometask-for-days__title-hometask-for-days">Дз на близжайшие дни</h2>
+                            <div class="hometask-for-days__list-hometask-for-days list-hometask-for-days">
+                                <% if (homework !== "none") { %>
+                                <% for(let i = 0;i < homework.length;i++){ %>
+                                <div class="hometask-for-days__hometask-for-day hometask-for-day">
+                                    <div class="hometask-for-day__date"><%= homework[i][0] %></div>
+                                    <div class="hometask-for-day__subject"><%= homework[i][1] %></div>
+                                    <div class="hometask-for-day__task"><%= homework[i][2] %></div>
+                                </div>
+                                <% } }%>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="main-block__right-block right-block">
-                    <div class="right-block__timetable timetable-block">
-                        <h2 class="timetable-block__title">Расписание звонков</h2>
-                        <table class="timetable-block__table table">
-                            <tr class="table__line line">
-                                <td class="line__column-1">1.</td>
-                                <td class="line__column-2">8.00 - 8.40</td>
-                            </tr>
-                            <tr class="table__line line">
-                                <td class="line__column-1">2.</td>
-                                <td class="line__column-2">8.50 - 9.30</td>
-                            </tr>
-                            <tr class="table__line line">
-                                <td class="line__column-1">3.</td>
-                                <td class="line__column-2">9.50 - 10.30</td>
-                            </tr>
-                            <tr class="table__line line">
-                                <td class="line__column-1">4.</td>
-                                <td class="line__column-2">10.50 - 11.30</td>
-                            </tr>
-                            <tr class="table__line line">
-                                <td class="line__column-1">5.</td>
-                                <td class="line__column-2">11.45 - 12.20</td>
-                            </tr>
-                            <tr class="table__line line">
-                                <td class="line__column-1">6.</td>
-                                <td class="line__column-2">12.30 - 13.05</td>
-                            </tr>
-                            <tr class="table__line line">
-                                <td class="line__column-1">7.</td>
-                                <td class="line__column-2">13.45 - 14.25</td>
-                            </tr>
-                            <tr class="table__line line">
-                                <td class="line__column-1">8.</td>
-                                <td class="line__column-2">14.40 - 15.20</td>
-                            </tr>
-                            <tr class="table__line line">
-                                <td class="line__column-1">9.</td>
-                                <td class="line__column-2">15.40 - 16.20</td>
-                            </tr>
-                            <tr class="table__line line">
-                                <td class="line__column-1">10.</td>
-                                <td class="line__column-2">16.40 - 17.20</td>
-                            </tr>
-                            <tr class="table__line line">
-                                <td class="line__column-1">11.</td>
-                                <td class="line__column-2">17.30 - 18.05</td>
-                            </tr>
-                            <tr class="table__line line">
-                                <td class="line__column-1">12.</td>
-                                <td class="line__column-2">18.15 - 18.50</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="right-block__events events-block">
-                        <h2 class="events-block__title">Лицейские события</h2>
-                        <div class="events-block__event event">
-                            <div class="event__name">Школьная дискотека</div>
-                            <div class="event__date">Дата 24.12.2022</div>
-                            <div class="event__location">Место проведения: каб №315</div>
+                    <div class="main-block__right-block right-block">
+                        <div class="right-block__timetable timetable-block">
+                            <h2 class="timetable-block__title">Расписание звонков</h2>
+                            <table class="timetable-block__table table">
+                                <tr class="table__line line">
+                                    <td class="line__column-1">1.</td>
+                                    <td class="line__column-2">8.00 - 8.40</td>
+                                </tr>
+                                <tr class="table__line line">
+                                    <td class="line__column-1">2.</td>
+                                    <td class="line__column-2">8.50 - 9.30</td>
+                                </tr>
+                                <tr class="table__line line">
+                                    <td class="line__column-1">3.</td>
+                                    <td class="line__column-2">9.50 - 10.30</td>
+                                </tr>
+                                <tr class="table__line line">
+                                    <td class="line__column-1">4.</td>
+                                    <td class="line__column-2">10.50 - 11.30</td>
+                                </tr>
+                                <tr class="table__line line">
+                                    <td class="line__column-1">5.</td>
+                                    <td class="line__column-2">11.45 - 12.20</td>
+                                </tr>
+                                <tr class="table__line line">
+                                    <td class="line__column-1">6.</td>
+                                    <td class="line__column-2">12.30 - 13.05</td>
+                                </tr>
+                                <tr class="table__line line">
+                                    <td class="line__column-1">7.</td>
+                                    <td class="line__column-2">13.45 - 14.25</td>
+                                </tr>
+                                <tr class="table__line line">
+                                    <td class="line__column-1">8.</td>
+                                    <td class="line__column-2">14.40 - 15.20</td>
+                                </tr>
+                                <tr class="table__line line">
+                                    <td class="line__column-1">9.</td>
+                                    <td class="line__column-2">15.40 - 16.20</td>
+                                </tr>
+                                <tr class="table__line line">
+                                    <td class="line__column-1">10.</td>
+                                    <td class="line__column-2">16.40 - 17.20</td>
+                                </tr>
+                                <tr class="table__line line">
+                                    <td class="line__column-1">11.</td>
+                                    <td class="line__column-2">17.30 - 18.05</td>
+                                </tr>
+                                <tr class="table__line line">
+                                    <td class="line__column-1">12.</td>
+                                    <td class="line__column-2">18.15 - 18.50</td>
+                                </tr>
+                            </table>
                         </div>
-                        <div class="events-block__event event">
-                            <div class="event__name">Школьная дискотека</div>
-                            <div class="event__date">Дата 24.12.2022</div>
-                            <div class="event__location">Место проведения: каб №315</div>
+                        <div class="right-block__events events-block">
+                            <h2 class="events-block__title">Лицейские события</h2>
+                            <div class="events-block__event event">
+                                <div class="event__name">Школьная дискотека</div>
+                                <div class="event__date">Дата 24.12.2022</div>
+                                <div class="event__location">Место проведения: везде</div>
+                            </div>
+                            
                         </div>
-                        <div class="events-block__event event">
-                            <div class="event__name">Школьная дискотека</div>
-                            <div class="event__date">Дата 24.12.2022</div>
-                            <div class="event__location">Место проведения: каб №315</div>
-                        </div>
-                        <div class="events-block__event event">
-                            <div class="event__name">Школьная дискотека</div>
-                            <div class="event__date">Дата 24.12.2022</div>
-                            <div class="event__location">Место проведения: каб №315</div>
-                        </div>
-
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
-    <footer class="footer">
-    </footer>
-</div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="js/script.js"></script>
+        </main>
+        <footer class="footer">
+        </footer>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="js/script.js"></script>
 </body>
 
 </html>
