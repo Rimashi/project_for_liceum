@@ -28,12 +28,15 @@ const url = 'mongodb://127.0.0.1:27017/test';
 app.use(cookieParser());
 app.use(cors());
 app.use(jsonParser);
+app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 app.use('/', router);
+app.engine('ejs', require('ejs-locals'));
+app.set('views', __dirname + '/partials');
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+//app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, 'views')));
-app.use(express.static(`${__dirname}/views`));
+//app.use(express.static(`${__dirname}/views`));
 
 
 //----------------------------------------------------------------------------------------------------------------------
