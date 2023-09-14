@@ -29,11 +29,11 @@ router.post('/info',
 
 router.get('/schedule', userController.timetable);
 
-router.get('/schedule', authMiddleware, userController.timetable);
+router.post('/schedule', urlencodedParser, userController.login);
 
-router.post('/schedule',
-    urlencodedParser,
-    userController.login);
+router.get('/schedule/get', userController.get_timetable);
+
+router.get('/schedule/reg', userController.timetable_reg);
 
 
 //map-------------------------------------------------------------------------------------------------------------------
@@ -49,16 +49,25 @@ router.get('/subject',
 //mains-----------------------------------------------------------------------------------------------------------------
 
 //student-----------------------------------------
+
 router.get('/student', authMiddleware, userController.studentPage);
 
 router.post('/student', urlencodedParser, authMiddleware, userController.studentPagePost);
 
 router.get('/student/modal', urlencodedParser, authMiddleware, userController.studentModal);
 
+router.get('/student/modal/date', urlencodedParser, authMiddleware, userController.studentModalDate);
+
 //leader------------------------------------------
+
 router.get('/leader', authMiddleware, userController.leaderPage);
 
+router.post('/leader', urlencodedParser, authMiddleware, userController.leaderPagePost);
+
+//router.post('/leader', urlencodedParser, authMiddleware, userController.leaderEvents);
+
 //admin-------------------------------------------
+
 router.get('/admin', authMiddleware, userController.adminPage);
 
 //tokens----------------------------------------------------------------------------------------------------------------
@@ -68,5 +77,7 @@ router.get('/refresh', userController.refresh);
 //logout----------------------------------------------------------------------------------------------------------------
 
 router.get('/logout', userController.logout);
+
+router.get('/clear', authMiddleware, userController.clearDB);
 
 module.exports = router;
