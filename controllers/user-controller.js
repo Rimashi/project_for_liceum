@@ -29,8 +29,8 @@ const subjectsDict = {
     "10_Д": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
     "11_А": ["Англ. язык", "Астрономия", "Биология", "Информатика", "История", "Литература", "Математика", "Обж", "Общество", "Родной Язык", "Русский язык", "Физ-ра", "Физика"],
     "11_Б": ["Англ. язык", "Астрономия", "Биология", "География", "Информатика", "История", "Литература", "Математика", "Общество", "Родной Язык", "Русский язык", "Физ-ра", "Физика", "Экономика"],
-    "11_В": ["Англ. язык", "Астрономия", "Генетика", "География", "Информатика", "История", "Литература", "Математика", "Обж", "Общество", "Web", "Python", "Родной Язык", "Русский язык", "Физ-ра", "Физика", "Химия"],
-    "11_Г": ["Англ. язык", "Астрономия", "Биология", "География", "Информатика", "История", "Литература", "Математика", "Обж", "Общество", "Родной Язык", "Русский язык", "Физ-ра", "Химия"],
+    "11_В": ["Англ. язык", "Астрономия", "География", "Информатика", "История", "Литература", "Математика", "Обж", "Общество", "Web", "Python", "Родной Язык", "Русский язык", "Физ-ра", "Физика", "Химия"],
+    "11_Г": ["Англ. язык", "Астрономия", "Биология", "Генетика", "География", "Информатика", "История", "Литература", "Математика", "Обж", "Общество", "Родной Язык", "Русский язык", "Физ-ра", "Химия"],
     "11_Д": ["Англ. язык", "Астрономия", "Биология", "География", "Информатика", "История", "Литература", "Математика", "Немецкий", "Обж", "Общество", "Русский язык", "Стр", "ТП", "Физ-ра", "Французский", "Физика"]
 }
 
@@ -42,8 +42,9 @@ class UserController {
                 return res.render(createPath('index'));
             }
 
-            const {login, pass} = req.body;
-            const userData = await userService.registration(login, pass);
+            const {name, surname, login, pass, class_, status} = req.body;
+            console.log(name, surname, login, pass, class_, status);
+            const userData = await userService.registration(name, surname, login, pass, class_, status);
             res.cookie('refreshToken', userData.refreshToken, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true});
             return res.json(userData);
         } catch (e) {
@@ -66,7 +67,7 @@ class UserController {
                     return res.redirect("/index");
             }
             //console.log(userData.user.status);
-            res.cookie('accessToken', userData.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true});
+            res.cookie('accessToken', userData.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true, secure: true});
             res.cookie('refreshToken', userData.refreshToken, {
                 maxAge: 1000 * 60 * 60 * 24 * 7,
                 httpOnly: true,
@@ -508,7 +509,7 @@ class UserController {
             //console.log(`access token - ${token.accessToken} :: ${token.refreshToken} -- valid -- ${tokenService.validateRefreshToken(token.refreshToken)}`);
             console.log(`find - ${await tokenService.findToken(token.refreshToken)}`);///
             try {
-                res.cookie('accessToken', token.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true});
+                res.cookie('accessToken', token.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true, secure: true});
                 res.cookie('refreshToken', token.refreshToken, {
                     maxAge: 1000 * 60 * 60 * 24 * 7,
                     httpOnly: true,
