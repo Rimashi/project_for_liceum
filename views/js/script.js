@@ -16,13 +16,12 @@ $(document).ready(() => {
             $burgerMenu.toggleClass('active');
         }
     });
-//---------------ЗАГРУЗКАДАННЫХ----------------
 
 
 });
-window.onload = function() { // можно также использовать window.addEventListener('load', (event) => {
-        ('asdfgdsfgdsa').prependTo(".wrapper");
-};
+//---------------ЗАГРУЗКАДАННЫХ----------------
+
+
 $("button").click(function () {
     const $button = $(this);
 
@@ -84,20 +83,14 @@ const modals = {
           <div class="content-add-homework__left-add-homework left-add-homework">
             <div class="left-add-homework__select-subject-homework select-subject-homework">
               <h4 class="select-subject-homework__title">Предмет:</h4>
-              <select name="subject" class="select-subject-homework__select">
+              <select name="subject" id="subject" class="select-subject-homework__select">
                 <option value="none">Предмет</option>
-                <option value="first">first</option>
-                <option value="second">second</option>
-                <option value="third">third</option>
               </select>
             </div>
             <div class="left-add-homework__select-day-homework select-day-homework">
-              <h4 class="select-day-homework__title">Дата предмета:</h4>
+              <h4 class="select-day-homework__title">Дата сдачи:</h4>
               <select name="date" class="select-day-homework__select">
                 <option value="none">Дата</option>
-                <option value="04.09">04.09</option>
-                <option value="05.09">05.09</option>
-                <option value="07.09">07.09</option>
               </select>
             </div>
             <input type="submit" class="left-add-homework__button-upload-homework" value="Добавить ДЗ" id="add_homework_button">
@@ -206,8 +199,9 @@ const modals = {
     </h3>
     <form class="modal-add-notice__content-add-notice content-add-notice">
         <h4 class="content-add-notice__title">Уведомление:</h4>
-        <textarea class="content-add-notice__textarea"></textarea>
-        <button class="content-add-notice__button">Создать уведомлeние</button>
+        <textarea name="notification" class="content-add-notice__textarea"></textarea>
+        <input type="submit" class="content-add-notice__button" value="Создать уведомлeние">
+<!--        <button class="content-add-notice__button">Создать уведомлeние</button>-->
     </form>
   </dialog> `,
 
@@ -329,9 +323,49 @@ $('.unlogin-button').click(() => {
     })
 });
 
+
 $('.button-add-hometask').click(() => {
     openModal('add-homework');
+    let b = $('.select-subject-homework__select')
+
+    $.ajax({
+        type: "GET",
+        url: "/student/modal",
+        success: function (json) {
+            let a = json.subjects;
+            for (let i in a) {
+                b.append('<option value=' + a[i].replace(" ", "_") + '>' + a[i] + '</option>');
+
+            }
+        }
+
+    });
+    b.on('change', function (e) {
+
+        let subject = e.target.value;
+        //console.log(subject)
+        let f = $('.select-day-homework__select');
+        f.empty();
+        $.ajax({
+            type: "GET",
+            url: "/student/modal/date",
+            data: {subject: subject},
+            success: function (data) {
+
+                let dateJSON = data.dates;
+
+                for (let i in dateJSON) {
+                    f.append('<option value=' + dateJSON[i] + '>' + dateJSON[i] + '</option>');
+
+                }
+            }, error: function (xhr, status, error) {
+                console.error(xhr.responseText);
+                console.log("пустой json");
+            }
+        })
+    })
 });
+
 $('.button-check-hometask').click(() => {
     openModal('check-hometask');
 });
