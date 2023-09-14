@@ -13,31 +13,7 @@
 <body>
 <div class="wrapper">
 
-    <header class="header">
-        <div class="header__container _container">
-            <a href="/student" class="header__logo logo">
-                <div class="logo__img"><img src="img/header/Logo.svg" alt="Logo"></div>
-                <div class="logo__text">ийский Лицей</div>
-            </a>
-            <div class="header__actions header-action">
-                <div class="header-action__name-account"><%=surname%></div>
-                <div class="header-action__burger burger">
-                    <div class="burger__icon">
-                        <span></span>
-                    </div>
-                    <nav class="burger__menu">
-                        <ul class="burger__list">
-                            <li><a href="/schedule" class="burger__link">Расписание</a></li>
-                            <li><a href="" class="burger__link">Карта</a></li>
-                            <li><a href="/subject" class="burger__link">Предметы</a></li>
-                            <li><a href="/info" class="burger__link">Информация</a></li>
-                        </ul>
-                    </nav>
-                </div>
-                <button class="header-action__unlogin-button unlogin-button">Выйти</button>
-            </div>
-        </div>
-    </header>
+    <%- include partials/header-user.ejs %>
 
     <main class="page">
         <div class="page__container _container">
@@ -46,33 +22,26 @@
                     <button class="left-block-user__button-add-hometask button-add-hometask">Добавить ДЗ</button>
                     <div class="left-block-user__leader-notice leader-notice">
                         <h2 class="leader-notice__title-leader-notice">Уведомление от старост</h2>
+                        <div class="leader-notice__list-leader-notice list-leader-notice">
+                            <% if (notification !== "none"){ %>
+                                <% for (let i in notification){ %>
+                                <div class="list-leader-notice__leader-notice">
+                                    <%= i %>
+                                </div>
+                            <% }} %>
+                        </div>
                     </div>
                     <div class="left-block-user__hometask-for-days hometask-for-days">
                         <h2 class="hometask-for-days__title-hometask-for-days">Дз на близжайшие дни</h2>
-                        <div class="hometask-for-days__hometask-for-day hometask-for-day">
-                            <div class="hometask-for-day__date"><%=homework[0].date%></div>
-                            <div class="hometask-for-day__subject"><%=homework[0].subject%></div>
-                            <div class="hometask-for-day__task"><%=homework[0].text%></div>
-                        </div>
-                        <div class="hometask-for-days__hometask-for-day hometask-for-day">
-                            <div class="hometask-for-day__date">25.04</div>
-                            <div class="hometask-for-day__subject">Русский яз:</div>
-                            <div class="hometask-for-day__task">номера 13-14</div>
-                        </div>
-                        <div class="hometask-for-days__hometask-for-day hometask-for-day">
-                            <div class="hometask-for-day__date">25.04</div>
-                            <div class="hometask-for-day__subject">Русский яз:</div>
-                            <div class="hometask-for-day__task">номера 13-14</div>
-                        </div>
-                        <div class="hometask-for-days__hometask-for-day hometask-for-day">
-                            <div class="hometask-for-day__date">25.04</div>
-                            <div class="hometask-for-day__subject">Русский яз:</div>
-                            <div class="hometask-for-day__task">номера 13-14</div>
-                        </div>
-                        <div class="hometask-for-days__hometask-for-day hometask-for-day">
-                            <div class="hometask-for-day__date">25.04</div>
-                            <div class="hometask-for-day__subject">Русский яз:</div>
-                            <div class="hometask-for-day__task">номера 13-14</div>
+                        <div class="hometask-for-days__list-hometask-for-days list-hometask-for-days">
+                            <% if (homework !== "none") { %>
+                                <% for(let i = 0;i < homework.length;i++){ %>
+                                    <div class="hometask-for-days__hometask-for-day hometask-for-day">
+                                        <div class="hometask-for-day__date"><%= homework[i][0] %></div>
+                                        <div class="hometask-for-day__subject"><%= homework[i][1] %></div>
+                                        <div class="hometask-for-day__task"><%= homework[i][2] %></div>
+                                    </div>
+                            <% } } %>
                         </div>
                     </div>
                 </div>
@@ -135,24 +104,8 @@
                         <div class="events-block__event event">
                             <div class="event__name">Школьная дискотека</div>
                             <div class="event__date">Дата 24.12.2022</div>
-                            <div class="event__location">Место проведения: каб №315</div>
+                            <div class="event__location">Место проведения: везде</div>
                         </div>
-                        <div class="events-block__event event">
-                            <div class="event__name">Школьная дискотека</div>
-                            <div class="event__date">Дата 24.12.2022</div>
-                            <div class="event__location">Место проведения: каб №315</div>
-                        </div>
-                        <div class="events-block__event event">
-                            <div class="event__name">Школьная дискотека</div>
-                            <div class="event__date">Дата 24.12.2022</div>
-                            <div class="event__location">Место проведения: каб №315</div>
-                        </div>
-                        <div class="events-block__event event">
-                            <div class="event__name">Школьная дискотека</div>
-                            <div class="event__date">Дата 24.12.2022</div>
-                            <div class="event__location">Место проведения: каб №315</div>
-                        </div>
-
                     </div>
                 </div>
             </div>
