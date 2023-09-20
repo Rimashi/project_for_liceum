@@ -109,11 +109,11 @@ class UserService {
         console.log(login);
         if (login.split(" ").length - 1 === 0) {
             const user = await UserModel.findOne({login: login});
-            console.log(user);
+            //console.log(user);
 
             if (!user) {
                 const user = await UserModel.findOne({surname: login});
-                console.log(user);
+                //console.log(user);
                 if (!user) {
                     //throw ApiError.BadRequest('Пользователь не найден');
                     return "userNone";
@@ -225,22 +225,32 @@ class UserService {
 //student---------------------------------------------------------------------------------------------------------------
 
     async getNotification(class_) {
-        const notification = await notificationModel.find({class: class_});
+        //console.log(class_);
+        const dt = DateTime.now();
+        //console.log(dt.day);
+        const notification = await notificationModel.find({class: class_, date: dt.day.toString() + "." + dt.month.toString()});
+        const data = [];
+        //console.log(notification, " - notify");
+        for (let i in notification) {
+            data.push(notification[i].text);
+        }
         if (!notification)
             return "none";
-        return notification;
+        return data;
     }
 
     async getHomework(refreshToken) {
-        const dt = DateTime.now();
+        const dt = DateTime.local();
         const userData = tokenService.validateRefreshToken(refreshToken);
         const user = await UserModel.findById(userData.id);
         let today = dt.day.toString() + "." + dt.month.toString();
+        console.log(today, " - today" , user.class);
         let tommorow = (dt.day + 1).toString() + "." + dt.month.toString();
         let sendHomework = [];
         let sec = [];
 
         let homework = await hometaskModel.find({class: user.class, date: today});
+        console.log(homework," - homework");
         for (let i in homework) {
             let homeworkStr = [homework[i]['date'], homework[i]['subject'], homework[i]['text']];
             sendHomework.push(homeworkStr);
@@ -316,7 +326,7 @@ class UserService {
         let fromStoT = week.indexOf(dateOfMight[2]) - week.indexOf(dateOfMight[1]);
         switch (dateOfMight.length) {
             case 1:
-                if (indexOfDays > week.indexOf(dateOfMight[0])) {
+                if (indexOfDays >= week.indexOf(dateOfMight[0])) {
                     let date = 7 - indexOfDays + week.indexOf(dateOfMight[0]);
                     //console.log(`indexOfDays - ${indexOfDays}, weekIndex - ${week.indexOf(dateOfMight[0])}`);
                     //console.log(date, "- date ssssss", dt.month);
@@ -343,8 +353,8 @@ class UserService {
                 let fromStoF = 7 - week.indexOf(dateOfMight[1]) + week.indexOf(dateOfMight[0]);
                 let forThird = fromStoF + fromFtoS;
                 //console.log(indexOfDays, " - index")
-                if (indexOfDays > week.indexOf(dateOfMight[0])) {
-                    if (indexOfDays > week.indexOf(dateOfMight[1])) {
+                if (indexOfDays >= week.indexOf(dateOfMight[0])) {
+                    if (indexOfDays >= week.indexOf(dateOfMight[1])) {
                         let forEnd = week.indexOf(dateOfMight[0]) + (7 - indexOfDays);
                         totalDate.push(
                             dt.plus({days: forEnd}).day.toString() + "." + dt.plus({days: forEnd}).month.toString(),
@@ -376,9 +386,9 @@ class UserService {
                 //fromFtoS = week.indexOf(dateOfMight[1]) - week.indexOf(dateOfMight[0]);
                 //let fromStoT = week.indexOf(dateOfMight[2]) - week.indexOf(dateOfMight[1]);
                 let fromTtoF = 7 - week.indexOf(dateOfMight[2]) + week.indexOf(dateOfMight[0]);
-                if (indexOfDays > week.indexOf(dateOfMight[0])) {
-                    if (indexOfDays > week.indexOf(dateOfMight[1])) {
-                        if (indexOfDays > week.indexOf(dateOfMight[2])) { //4 5
+                if (indexOfDays >= week.indexOf(dateOfMight[0])) {
+                    if (indexOfDays >= week.indexOf(dateOfMight[1])) {
+                        if (indexOfDays >= week.indexOf(dateOfMight[2])) { //4 5
                             let date = 7 - indexOfDays + week.indexOf(dateOfMight[0]);
                             totalDate.push(
                                 dt.plus({days: date}).day.toString() + "." + dt.plus({days: date}).month.toString(),
@@ -419,10 +429,10 @@ class UserService {
                 //fromStoT = week.indexOf(dateOfMight[2]) - week.indexOf(dateOfMight[1]);
                 let fromTtoFor = week.indexOf(dateOfMight[3]) - week.indexOf(dateOfMight[2]);
                 let fromFortoF = 7 - week.indexOf(dateOfMight[3]) + week.indexOf(dateOfMight[0]);
-                if (indexOfDays > week.indexOf(dateOfMight[0])) {
-                    if (indexOfDays > week.indexOf(dateOfMight[1])) {
-                        if (indexOfDays > week.indexOf(dateOfMight[2])) {
-                            if (indexOfDays > week.indexOf(dateOfMight[3])) {
+                if (indexOfDays >= week.indexOf(dateOfMight[0])) {
+                    if (indexOfDays >= week.indexOf(dateOfMight[1])) {
+                        if (indexOfDays >= week.indexOf(dateOfMight[2])) {
+                            if (indexOfDays >= week.indexOf(dateOfMight[3])) {
                                 let date = 7 - indexOfDays + week.indexOf(dateOfMight[0]);
                                 totalDate.push(
                                     dt.plus({days: date}).day.toString() + "." + dt.plus({days: date}).month.toString(),
@@ -434,8 +444,8 @@ class UserService {
                                 let date = week.indexOf(dateOfMight[3]) - indexOfDays;
                                 totalDate.push(
                                     dt.plus({days: date}).day.toString() + "." + dt.plus({days: date}).month.toString(),
-                                    dt.plus({days: (date + fromTtoFor)}).day.toString() + "." + dt.plus({days: (date + fromTtoFor)}).month.toString(),
-                                    dt.plus({days: (date + fromFortoF + fromTtoFor)}).day.toString() + "." + dt.plus({days: (date + fromFortoF + fromTtoFor)}).month.toString()
+                                    dt.plus({days: (date + fromFortoF)}).day.toString() + "." + dt.plus({days: (date + fromFortoF)}).month.toString(),
+                                    dt.plus({days: (date + fromFortoF + fromFtoS)}).day.toString() + "." + dt.plus({days: (date + fromFortoF + fromFtoS)}).month.toString()
                                 );
                                 console.log(totalDate);
                             }
@@ -475,7 +485,7 @@ class UserService {
         const userData = tokenService.validateRefreshToken(refreshToken);
         const user = await UserModel.findById(userData.id);
 
-        const isWritten = await hometaskModel.findOne({surname: user.surname, subject: subject});
+        const isWritten = await hometaskModel.findOne({surname: user.surname, subject: subject, date: date});
         if (isWritten) {
             console.log("this person written homework")
             return {user, problems: "person has written"};
@@ -501,18 +511,26 @@ class UserService {
     }
 
     async student(refreshToken) {
-        const userData = tokenService.validateRefreshToken(refreshToken);
+        const userData = await tokenService.validateRefreshToken(refreshToken);
+        console.log(userData, "--userData");
         const user = await UserModel.findById(userData.id);
         return user;
     }
 
     async clearHomework() {
         const dt = DateTime.now();
+        let notifications;
+        if (dt.hour === 0) {
+            notifications = await notificationModel.find();
+            for (let i in notifications) {
+                await notificationModel.deleteOne({_id: notifications[i]._id});
+            }
+        }
         const isClear = await hometaskModel.find();
         //console.log(isClear);
         for (let i = 0; i < isClear.length; i++) {
             if (isClear[i]['date'].split(".")[0] < dt.day && isClear[i]['date'].split(".")[0] < dt.month) {
-                //console.log(await hometaskModel.deleteOne({_id: isClear[i]['id']}));
+                await hometaskModel.deleteOne({_id: isClear[i]['id']});
             }
         }
         return true;
@@ -523,16 +541,19 @@ class UserService {
     async leader(refreshToken) {
         const userData = tokenService.validateRefreshToken(refreshToken);
         const user = await UserModel.findById(userData.id);
+        //console.log(user);
         return user;
     }
 
     async leaderNotification(refreshToken, notification) {
-        console.log(notification);
+        //console.log(notification);
+        const dt = DateTime.now();
         const user = await UserModel.findById(tokenService.validateRefreshToken(refreshToken).id);
-        console.log(user, " leader user");
+        //console.log(user, " leader user");
         const userData = await notificationModel.create({
             text: notification,
-            class: user.class
+            class: user.class,
+            date: dt.day.toString() + "." + dt.month.toString()
         });
         return true;
     }
