@@ -1,7 +1,7 @@
 const {Schema, model} = require('mongoose');
 
 const HometaskSchema = new Schema({
-    surname: {type: String, unique: true, required: true},
+    surname: {type: String, unique: false, required: true},
     text: {type: String, unique: false, required: true},
     class: {type: String, unique: false, required: true},
     subject: {type: String, unique: false, required: true},
