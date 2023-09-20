@@ -27,11 +27,11 @@ const subjectsDict = {
     "10_В": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
     "10_Г": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
     "10_Д": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-    "11_А": ["Англ. язык", "Астрономия", "Биология", "Информатика", "История", "Литература", "Математика", "Обж", "Общество", "Родной Язык", "Русский язык", "Физ-ра", "Физика"],
+    "11_А": ["Англ. язык", "Астрономия", "Алгебра", "Геометрия", "Информатика", "История", "Литература", "Обж", "Общество", "Родной Язык", "Русский язык", "Физ-ра", "Физика"],
     "11_Б": ["Англ. язык", "Астрономия", "Биология", "География", "Информатика", "История", "Литература", "Математика", "Общество", "Родной Язык", "Русский язык", "Физ-ра", "Физика", "Экономика"],
-    "11_В": ["Англ. язык", "Астрономия", "География", "Информатика", "История", "Литература", "Математика", "Обж", "Общество", "Web", "Python", "Родной Язык", "Русский язык", "Физ-ра", "Физика", "Химия"],
+    "11_В": ["Англ. язык", "Астрономия", "Алгебра", "География", "Геометрия", "Информатика", "История", "Литература", "Обж", "Общество", "Web", "Python", "Родной Язык", "Русский язык", "Физ-ра", "Физика", "Химия"],
     "11_Г": ["Англ. язык", "Астрономия", "Биология", "Генетика", "География", "Информатика", "История", "Литература", "Математика", "Обж", "Общество", "Родной Язык", "Русский язык", "Физ-ра", "Химия"],
-    "11_Д": ["Англ. язык", "Астрономия", "Биология", "География", "Информатика", "История", "Литература", "Математика", "Немец.", "Обж", "Общество", "Русский язык", "Стр", "ТП", "Физ-ра", "Франц.", "Физика"]
+    "11_Д": ["Англ. язык", "Астрономия", "Биология", "География", "Информатика", "История", "Литература", "Математика", "Немецкий", "Обж", "Общество", "Русский язык", "Стр", "ТП", "Физ-ра", "Французский", "Физика"]
 }
 
 class UserController {
@@ -45,7 +45,7 @@ class UserController {
             const {name, surname, login, pass, class_, status} = req.body;
             console.log(name, surname, login, pass, class_, status);
             const userData = await userService.registration(name, surname, login, pass, class_, status);
-            res.cookie('refreshToken', userData.refreshToken, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true});
+            res.cookie('refreshToken', userData.refreshToken, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: false});
             return res.json(userData);
         } catch (e) {
             return next(e);
@@ -57,21 +57,25 @@ class UserController {
     async login(req, res, next) {
         try {
             const {login, pass} = req.body;
-
+            //console.log(pass);
             const userData = await userService.login(login.toLowerCase(), pass);
             //console.log(userData);
             switch (userData) {
                 case "userNone":
+                    console.log("userNone");
                     return res.redirect("/index");
                 case "passwordNone":
+                    console.log("passwordNone");
+                    return res.redirect("/index");
+                case "null":
                     return res.redirect("/index");
             }
             //console.log(userData.user.status);
-            res.cookie('accessToken', userData.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true, secure: true});
+            res.cookie('accessToken', userData.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true, secure: false});
             res.cookie('refreshToken', userData.refreshToken, {
                 maxAge: 1000 * 60 * 60 * 24 * 7,
                 httpOnly: true,
-                secure: true
+                secure: false
             });
             //console.log(`userData - ${userData}`);
             switch (userData.data[0]) {
@@ -223,6 +227,10 @@ class UserController {
         try {
             const {refreshToken} = req.cookies;
             const surname = await userService.student(refreshToken);
+            //console.log(surname, " --studentPage");
+            if(surname===null){
+                return res.redirect('/index');
+            }
             const notify = await userService.getNotification(surname.class);
             if (surname.status !== "student")
                 return res.redirect('/index');
@@ -236,6 +244,7 @@ class UserController {
                 });
             //console.log(surname, " - surname");//верни
             const isDone = await userService.clearHomework();
+            //console.log(isDone);
             return res.render(createPath("main-student"), {
                 surname: ucfirst(surname.surname) + " " + surname.class.split("_")[0] + surname.class.split("_")[1],
                 homework: homework,
@@ -357,6 +366,7 @@ class UserController {
             const user = await userService.leader(refreshToken);
             //console.log(user);
             const notify = await userService.getNotification(user.class);
+            //console.log(notify, " notifi");
             const isDone = await userService.clearHomework();
             if (user.status !== "leader")
                 return res.redirect(createPath('/index'));
@@ -368,7 +378,7 @@ class UserController {
                     homework: "none",
                     notification: notify
                 });
-            console.log(user.surname, " - surname");//верни
+            //console.log(user.surname, " - surname");//верни
             return res.render(createPath("main-leader"), {
                 surname: ucfirst(user.surname) + " " + user.class.split("_")[0] + user.class.split("_")[1],
                 homework: homework,
@@ -383,7 +393,7 @@ class UserController {
         try {
             const {refreshToken} = req.cookies;
             const {homework_text, subject, date} = req.body;
-            const {notification} = req.body;
+            let {notification} = req.body;
             let surname;
             //console.log(notification, " - notify");
 
@@ -391,16 +401,40 @@ class UserController {
             //console.log("post", homework_text, subject, date);
             //console.log(body_date, " try to date this");
             const homework = await userService.getHomework(refreshToken);
-            // if (notification !== "undefined") {
-            //     let eventAdd = await userService.leaderNotification(refreshToken, notification);
-            //     surname = await userService.writeHomework(refreshToken, homework_text, subject, date);
-            // } else {
-            //     surname = await userService.leader(refreshToken);
-            // } на подумать
-            surname = await userService.writeHomework(refreshToken, homework_text, subject, date);
+            if (notification) {
+                let eventAdd = await userService.leaderNotification(refreshToken, notification);
+                //console.log(eventAdd);
+                surname = await userService.leader(refreshToken);
+                //console.log(surname.class, " class");
+            } else {
+                surname = await userService.writeHomework(refreshToken, homework_text, subject, date);
+            }
+            notification = "";
+            //surname = await userService.leader(refreshToken);//на подумать
             //console.log(surname.user.surname, " surname after");
-            const notify = await userService.getNotification(surname.user.class);
-            //console.log(notify, " notifi");
+            const notify = await userService.getNotification(surname.class);
+            console.log(notify, " notifi");
+            if (notification) {
+                console.log("was add notification");
+                return res.redirect("/student");
+                // return res.render(createPath("main-leader"), {
+                //     surname: ucfirst(surname.surname) + " " + surname.class.split("_")[0] + surname.class.split("_")[1],
+                //     subjects: subjectsDict[surname.class],
+                //     homework: homework,
+                //     problems: "none",
+                //     notification: notify
+                // });
+            } else {
+                surname = await userService.leader(refreshToken);
+                return res.redirect("/student");
+                // return res.render(createPath("main-leader"), {
+                //     surname: ucfirst(surname.surname) + " " + surname.class.split("_")[0] + surname.class.split("_")[1],
+                //     subjects: subjectsDict[surname.class],
+                //     homework: homework,
+                //     problems: "none",
+                //     notification: notify
+                // });
+            }
             switch (surname.problems) {
                 case "noneDate":
                     console.log("date was not selected");
@@ -507,16 +541,16 @@ class UserController {
                 return token;
             //console.log(`token  - ${token}`)///
             //console.log(`access token - ${token.accessToken} :: ${token.refreshToken} -- valid -- ${tokenService.validateRefreshToken(token.refreshToken)}`);
-            console.log(`find - ${await tokenService.findToken(token.refreshToken)}`);///
+            //console.log(`find - ${await tokenService.findToken(token.refreshToken)}`);///
             try {
-                res.cookie('accessToken', token.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true, secure: true});
+                res.cookie('accessToken', token.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true, secure: false});
                 res.cookie('refreshToken', token.refreshToken, {
                     maxAge: 1000 * 60 * 60 * 24 * 7,
                     httpOnly: true,
-                    secure: true
+                    secure: false
                 });
             } catch (e) {
-                console.log(e);
+                //console.log(e);
             }
             switch (token.data[0]) {
                 case "student":
