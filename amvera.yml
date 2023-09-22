@@ -1,0 +1,10 @@
+meta:
+  environment: node
+  toolchain:
+    name: npm
+    version: 18
+
+run:
+  scriptName: server.js
+  command: npm run start
+  containerPort: 3000
