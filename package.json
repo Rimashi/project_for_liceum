@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node ./server.js --port=80 --host",
+    "start": "node ./server.js --port=3000 --host",
     "dev": "nodemon server.js"
   },
   "keywords": [],
