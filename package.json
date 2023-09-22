@@ -4,6 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
+    "start": "node ./server.js --port=80 --host",
     "dev": "nodemon server.js"
   },
   "keywords": [],
@@ -16,10 +17,12 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
+    "ejs-locals": "^1.0.2",
     "express": "^4.18.2",
     "express-validator": "^7.0.1",
     "jquery": "^3.7.0",
     "jsonwebtoken": "^9.0.1",
+    "luxon": "^3.4.3",
     "mongodb": "^5.8.0",
     "mongoose": "^7.4.4"
   },
