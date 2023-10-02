@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css?family=Roboto:regular,500,700&display=swap" rel="stylesheet"/>
-
+    <meta name="color-scheme" content="only light">
 
     <link href="https://fonts.googleapis.com/css?family=Ubuntu:700&display=swap" rel="stylesheet"/>
     <title>Главная страница старосты</title>
@@ -13,20 +13,7 @@
 <body>
 <div class="wrapper">
 
-    <header class="header">
-        <div class="header__container _container">
-            <a href="/admin" class="header__logo logo">
-                <div class="logo__img"><img src="img/header/Logo.svg" alt="Logo"></div>
-                <div class="logo__text">ийский Лицей</div>
-            </a>
-            <div class="header__actions header-action">
-                <div class="header-action__name-account">Admin</div>
-
-                <button class="header-action__unlogin-button unlogin-button">Выйти</button>
-            </div>
-        </div>
-    </header>
-
+    <%- include partials/header-admin.ejs %>
 
     <main class="page">
         <div class="page__container _container">
