@@ -8,7 +8,7 @@ const UserSchema = new Schema({
     class: {type: String, unique: false, required: true},
     status: {type: String, unique: false, required: true},
     rating: {type: Number, unique: false, required: true},
-    ban: {type: Number, unique: false, required: false},
+    ban: {type: String, unique: false, required: false},
     isChangePass: {type: Boolean, unique: false, required: false}
 });
 
