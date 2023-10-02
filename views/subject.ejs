@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css?family=Roboto:regular,500,700&display=swap" rel="stylesheet"/>
-
+    <meta name="color-scheme" content="only light">
 
     <link href="https://fonts.googleapis.com/css?family=Ubuntu:700&display=swap" rel="stylesheet"/>
     <title>Предметы</title>
@@ -13,91 +13,19 @@
 <body>
 <div class="wrapper">
 
-    <header class="header">
-        <div class="header__container _container">
-            <a href="/index" class="header__logo logo">
-                <div class="logo__img"><img src="img/header/Logo.svg" alt="Logo"></div>
-                <div class="logo__text">ийский Лицей</div>
-            </a>
-            <div class="header__actions header-action">
-                <div class="header-action__name-account">Котельникова 10В</div>
-                <div class="header-action__burger burger">
-                    <div class="burger__icon">
-                        <span></span>
-                    </div>
-                    <nav class="burger__menu">
-                        <ul class="burger__list">
-                            <li><a href="/schedule" class="burger__link">Расписание</a></li>
-                            <li><a href="" class="burger__link">Карта</a></li>
-                            <li><a href="/subject" class="burger__link">Предметы</a></li>
-                            <li><a href="/info" class="burger__link">Информация</a></li>
-                        </ul>
-                    </nav>
-                </div>
-                <button class="header-action__unlogin-button unlogin-button">Выйти</button>
-            </div>
-        </div>
-    </header>
+    <% include partials/header-user.ejs %>
 
     <main class="page">
         <div class="page__container _container">
             <div class="page__subjects-block subjects-block">
-                <div class="subjects-block__subject-school subject-school subject-russian">
-                    <h3 class="subject-school__title">Русский Язык</h3>
-                    <div class="subject-school__homework-checked">ДЗ - есть</div>
-                </div>
-                <div class="subjects-block__subject-school subject-school subject-programming">
-                    <h3 class="subject-school__title">Прикладное программирование</h3>
-                    <div class="subject-school__homework-checked">ДЗ - есть</div>
-                </div>
-                <div class="subjects-block__subject-school subject-school subject-math">
-                    <h3 class="subject-school__title">Математика</h3>
-                    <div class="subject-school__homework-checked">ДЗ - отсутствует</div>
-                </div>
-                <div class="subjects-block__subject-school subject-school subject-literature">
-                    <h3 class="subject-school__title">Литература</h3>
-                    <div class="subject-school__homework-checked">ДЗ - есть</div>
-                </div>
-                <div class="subjects-block__subject-school subject-school subject-PE">
-                    <h3 class="subject-school__title">Физ-ра</h3>
-                    <div class="subject-school__homework-checked">ДЗ - есть</div>
-                </div>
-                <div class="subjects-block__subject-school subject-school subject-phisics">
-                    <h3 class="subject-school__title">Физика</h3>
-                    <div class="subject-school__homework-checked">ДЗ - есть</div>
-                </div>
-                <div class="subjects-block__subject-school subject-school subject-social_science">
-                    <h3 class="subject-school__title">Обществознание</h3>
-                    <div class="subject-school__homework-checked">ДЗ - есть</div>
-                </div>
-                <div class="subjects-block__subject-school subject-school subject-geography">
-                    <h3 class="subject-school__title">ГеоГраФея</h3>
-                    <div class="subject-school__homework-checked">ДЗ - есть</div>
-                </div>
-                <div class="subjects-block__subject-school subject-school subject-chemestry">
-                    <h3 class="subject-school__title">Химия</h3>
-                    <div class="subject-school__homework-checked">ДЗ - есть</div>
-                </div>
-                <div class="subjects-block__subject-school subject-school subject-IT">
-                    <h3 class="subject-school__title">Информатика</h3>
-                    <div class="subject-school__homework-checked">ДЗ - есть</div>
-                </div>
-                <div class="subjects-block__subject-school subject-school subject-english">
-                    <h3 class="subject-school__title">Иностранный язык</h3>
-                    <div class="subject-school__homework-checked">ДЗ - есть</div>
-                </div>
-                <div class="subjects-block__subject-school subject-school subject-obj">
-                    <h3 class="subject-school__title">cooler Обж</h3>
-                    <div class="subject-school__homework-checked">ДЗ - есть</div>
-                </div>
-                <div class="subjects-block__subject-school subject-school subject-OdO">
-                    <h3 class="subject-school__title">Одо</h3>
-                    <div class="subject-school__homework-checked">ДЗ - есть</div>
-                </div>
-                <div class="subjects-block__subject-school subject-school subject-history">
-                    <h3 class="subject-school__title">История</h3>
-                    <div class="subject-school__homework-checked">ДЗ - есть</div>
-                </div>
+                <% for (let i = 0;i < subjects_.length;i++){ %>
+                    <div class="subjects-block__subject-school subject-school subject-math">
+                        <h3 class="subject-school__title">
+                            <%= subjects_[i] %>
+                        </h3>
+                        <div class="subject-school__homework-checked">ДЗ - есть</div>
+                    </div>
+                <% } %>
             </div>
         </div>
     </main>
