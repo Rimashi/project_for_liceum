@@ -13,17 +13,14 @@ router.get('/registration', urlencodedParser, userController.registration);
 
 router.get('/index', redirectMid, userController.indexPage);
 
-router.post('/index', urlencodedParser,
-    userController.login);
+router.post('/index', urlencodedParser, userController.login);
 
 //info------------------------------------------------------------------------------------------------------------------
 
 
 router.get('/info', userController.infoPage);
 
-router.post('/info',
-    urlencodedParser,
-    userController.login);
+router.post('/info', urlencodedParser, userController.login);
 
 //timetable-------------------------------------------------------------------------------------------------------------
 
@@ -42,9 +39,7 @@ router.get('/map', userController.map);
 
 //subjects--------------------------------------------------------------------------------------------------------------
 
-router.get('/subject',
-    authMiddleware,
-    userController.subjects);
+router.get('/subject', authMiddleware, userController.subjects);
 
 //mains-----------------------------------------------------------------------------------------------------------------
 
@@ -64,7 +59,13 @@ router.get('/leader', authMiddleware, userController.leaderPage);
 
 router.post('/leader', urlencodedParser, authMiddleware, userController.leaderPagePost);
 
-//router.post('/leader', urlencodedParser, authMiddleware, userController.leaderEvents);
+router.get('/leader/checkmodal', urlencodedParser, authMiddleware, userController.leaderCheck);
+
+router.get('/leader/modal/add', urlencodedParser, authMiddleware, userController.leaderModalAdd);
+
+router.get('/leader/modal/del', urlencodedParser, authMiddleware, userController.leaderModalDel);
+
+router.get('/leader/modal/ban', urlencodedParser, authMiddleware, userController.leaderModalBan);
 
 //admin-------------------------------------------
 
@@ -78,6 +79,6 @@ router.get('/refresh', userController.refresh);
 
 router.get('/logout', userController.logout);
 
-router.get('/clear', authMiddleware, userController.clearDB);
+//router.get('/clear', authMiddleware, userController.clearDB);
 
 module.exports = router;
