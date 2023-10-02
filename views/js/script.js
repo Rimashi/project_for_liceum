@@ -109,84 +109,9 @@ const modals = {
     <h3 class="modal-check-hometask__title-check-hometask _title-modal">
       Проверка ДЗ
     </h3>
-    <form class="modal-check-hometask__content-table-list content-table-list">
+    <form method="get" class="modal-check-hometask__content-table-list content-table-list">
         <div class="content-table-list__table-element-check table-element-check">
-            <div class="element-check__info-check-element info-check-element">
-                <div class="info-check-element__login">3323</div>
-                <div class="info-check-element__date">25.04</div>
-                <div class="info-check-element__subject">Русский яз:</div>
-            </div>
-            <div class="element-check__content">номер 12-32 </div>
-    
-            <div class="element-check__function-table-element function-table-element">
-                <button class="function-table-element__function-button">Удалить</button>
-                <button class="function-table-element__function-button">Бан</button>
-            </div>
-        </div>
-        <div class="content-table-list__table-element-check table-element-check">
-            <div class="element-check__info-check-element info-check-element">
-                <div class="info-check-element__login">3323</div>
-                <div class="info-check-element__date">25.04</div>
-                <div class="info-check-element__subject">Русский яз:</div>
-            </div>
-            <div class="element-check__content">номер 12-32 </div>
-    
-            <div class="element-check__function-table-element function-table-element">
-                <button class="function-table-element__function-button">Удалить</button>
-                <button class="function-table-element__function-button">Бан</button>
-            </div>
-        </div>
-        <div class="content-table-list__table-element-check table-element-check">
-            <div class="element-check__info-check-element info-check-element">
-                <div class="info-check-element__login">3323</div>
-                <div class="info-check-element__date">25.04</div>
-                <div class="info-check-element__subject">Русский яз:</div>
-            </div>
-            <div class="element-check__content">номер 12-32 </div>
-    
-            <div class="element-check__function-table-element function-table-element">
-                <button class="function-table-element__function-button">Удалить</button>
-                <button class="function-table-element__function-button">Бан</button>
-            </div>
-        </div>
-        <div class="content-table-list__table-element-check table-element-check">
-            <div class="element-check__info-check-element info-check-element">
-                <div class="info-check-element__login">3323</div>
-                <div class="info-check-element__date">25.04</div>
-                <div class="info-check-element__subject">Русский яз:</div>
-            </div>
-            <div class="element-check__content">номер 12-32 </div>
-    
-            <div class="element-check__function-table-element function-table-element">
-                <button class="function-table-element__function-button">Удалить</button>
-                <button class="function-table-element__function-button">Бан</button>
-            </div>
-        </div>
-        <div class="content-table-list__table-element-check table-element-check">
-            <div class="element-check__info-check-element info-check-element">
-                <div class="info-check-element__login">3323</div>
-                <div class="info-check-element__date">25.04</div>
-                <div class="info-check-element__subject">Русский яз:</div>
-            </div>
-            <div class="element-check__content">номер 12-32 </div>
-    
-            <div class="element-check__function-table-element function-table-element">
-                <button class="function-table-element__function-button">Удалить</button>
-                <button class="function-table-element__function-button">Бан</button>
-            </div>
-        </div>
-        <div class="content-table-list__table-element-check table-element-check">
-            <div class="element-check__info-check-element info-check-element">
-                <div class="info-check-element__login">3323</div>
-                <div class="info-check-element__date">25.04</div>
-                <div class="info-check-element__subject">Русский яз:</div>
-            </div>
-            <div class="element-check__content">номер 12-32 </div>
-    
-            <div class="element-check__function-table-element function-table-element">
-                <button class="function-table-element__function-button">Удалить</button>
-                <button class="function-table-element__function-button">Бан</button>
-            </div>
+        
         </div>
     </form>
 </dialog>
@@ -197,7 +122,7 @@ const modals = {
     <h3 class="modal-add-notice__title-add-notice _title-modal">
         Создать уведомление
     </h3>
-    <form class="modal-add-notice__content-add-notice content-add-notice">
+    <form method="post" class="modal-add-notice__content-add-notice content-add-notice">
         <h4 class="content-add-notice__title">Уведомление:</h4>
         <textarea name="notification" class="content-add-notice__textarea"></textarea>
         <input type="submit" class="content-add-notice__button" value="Создать уведомлeние">
@@ -212,21 +137,22 @@ const modals = {
   <h3 class="modal-add-event__title-add-event _title-modal">
       Создать событие
   </h3>
-  <form class="modal-add-event__content-add-event content-add-event">
+  <form method="post" class="modal-add-event__content-add-event content-add-event">
       <div class="content-add-event__location-event location-event">
           <h4 class="location-event__title">Место проведения:</h4>
-          <textarea class="location-event__textarea"></textarea>
+          <textarea name="location" class="location-event__textarea"></textarea>
       </div>
       <div class="content-add-event__date-event date-event">
           <h4 class="date-event__title">Дата проведения:</h4>
-          <textarea class="date-event__textarea"></textarea>
+          <input name="date" type="date" class="date-event__textarea">
 
       </div>
       <div class="content-add-event__text-event text-event">
           <h4 class="text-event__title">Событие:</h4>
-          <textarea class="text-event__textarea"></textarea>
+          <textarea name="text" class="text-event__textarea"></textarea>
       </div>
-      <button class="content-add-event__submit">Создать событие</button>
+      <input type="submit" class="content-add-event__submit" value="Создать событие">
+      <!--<button class="content-add-event__submit">Создать событие</button>-->
   </form>
 </dialog> 
   `,
@@ -368,7 +294,100 @@ $('.button-add-hometask').click(() => {
 
 $('.button-check-hometask').click(() => {
     openModal('check-hometask');
+    let a = $('.content-table-list');
+    a.empty();
+    console.log('open');
+    $.ajax({
+        type: "GET",
+        url: "/leader/checkmodal",
+        success: function (json) {
+            let g = json['hometasks'];
+            for (let i in g) {
+                if (g[i].length > 0)
+                    a.append('<div class="content-table-list__table-element-check table-element-check" id="element_check_'+i+'">' +
+                        '<div class="element-check info-check-element">' +
+                        '   <div class="info-check-element__login" id="surname' + i + '">' + g[i][0] + '</div>\n' +
+                        '        <div class="info-check-element__date" id="date' + i + '">' + g[i][1] + '</div>\n' +
+                        '        <div class="info-check-element__subject" id="subject' + i + '">' + g[i][2] + '</div>\n' +
+                        '    </div>\n' +
+                        '    <div class="element-check__content">' + g[i][3] + '</div>\n' +
+                        '\n' +
+                        '    <div class="element-check__function-table-element function-table-element">\n' +
+
+                        '        <button type="button" name="add" id="add_' + i + '" class="function-table-element__function-button add_leader">Добавить</button>\n' +
+                        '        <button type="button" name="delete" id="del_' + i + '" class="function-table-element__function-button delete_leader">Удалить</button>\n' +
+                        '        <button type="button" name="ban" id="ban_' + i + '" class="function-table-element__function-button ban_leader">Бан</button>\n' +
+                        '    </div>\n' +
+                        '</div>')
+            }
+            $('.add_leader').on('click', function (e) {
+                let id = e.target.id.split('_')[1];
+                console.log(id);
+                let kok = $('#surname' + id).text();
+                let kok1 = $('#date' + id).text();
+                let kok2 = $('#subject' + id).text();
+                console.log(kok, kok1, kok2);
+                $.ajax({
+                    type: "GET",
+                    url: '/leader/modal/add',
+                    dataType: "json",
+                    processData: true,
+                    contentType: false,
+                    data: {data: {kok, kok1, kok2}},
+                    success: function (res) {
+                        console.log(res);
+                    }
+                });
+                $('#element_check_'+id).remove();
+            });
+
+            $('.delete_leader').on('click', function (e) {
+                let id = e.target.id.split('_')[1];
+                console.log(id);
+                let kok = $('#surname' + id).text();
+                let kok1 = $('#date' + id).text();
+                let kok2 = $('#subject' + id).text();
+                console.log(kok, kok1, kok2);
+                $.ajax({
+                    type: "GET",
+                    url: '/leader/modal/del',
+                    dataType: "json",
+                    processData: true,
+                    contentType: false,
+                    data: {data: {kok, kok1, kok2}},
+                    success: function (res) {
+                        console.log(res);
+                    }
+                });
+                $('#element_check_'+id).remove();
+            });
+
+            $('.ban_leader').on('click', function (e) {
+                let id = e.target.id.split('_')[1];
+                console.log(id);
+                let kok = $('#surname' + id).text();
+                let kok1 = $('#date' + id).text();
+                let kok2 = $('#subject' + id).text();
+                console.log(kok, kok1, kok2);
+                $.ajax({
+                    type: "GET",
+                    url: '/leader/modal/ban',
+                    dataType: "json",
+                    processData: true,
+                    contentType: false,
+                    data: {data: {kok, kok1, kok2}},
+                    success: function (res) {
+                        console.log(res);
+                    }
+                });
+                $('#element_check_'+id).remove();
+            });
+        }
+    });
+
+
 });
+
 $('.button-add-notice').click(() => {
     openModal('add-notice');
 });
