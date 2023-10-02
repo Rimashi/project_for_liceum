@@ -5,7 +5,8 @@ const HometaskSchema = new Schema({
     text: {type: String, unique: false, required: true},
     class: {type: String, unique: false, required: true},
     subject: {type: String, unique: false, required: true},
-    date: {type: String, unique: false, required: true}
+    date: {type: String, unique: false, required: true},
+    proved: {type: Boolean, unique: false, required: true}
 });
 
 module.exports = model('Hometask', HometaskSchema);
