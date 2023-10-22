@@ -11,9 +11,9 @@ router.get('/registration', urlencodedParser, userController.registration);
 
 //index-----------------------------------------------------------------------------------------------------------------
 
-router.get('/index', redirectMid, userController.indexPage);
+router.get('/', redirectMid, userController.indexPage);
 
-router.post('/index', urlencodedParser, userController.login);
+router.post('/', urlencodedParser, userController.login);
 
 //info------------------------------------------------------------------------------------------------------------------
 
@@ -70,6 +70,18 @@ router.get('/leader/modal/ban', urlencodedParser, authMiddleware, userController
 //admin-------------------------------------------
 
 router.get('/admin', authMiddleware, userController.adminPage);
+
+router.post('/admin', urlencodedParser, authMiddleware, userController.adminPagePost);
+
+router.get('/admin/eventModal', urlencodedParser, authMiddleware, userController.adminEventGet);
+
+//router.get('/admin/checkModal', urlencodedParser, authMiddleware, userController.adminCheck);
+
+//router.get('/admin/modal/add', urlencodedParser, authMiddleware, userController.adminModalAdd);
+
+router.get('/admin/modal/del', urlencodedParser, authMiddleware, userController.adminEventsDel);
+
+router.get('/admin/modal/ban', urlencodedParser, authMiddleware, userController.adminEventsBan);
 
 //tokens----------------------------------------------------------------------------------------------------------------
 
