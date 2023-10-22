@@ -33,7 +33,7 @@ module.exports = async function (req, res, next) {
                         return res.redirect('/admin');
                     default:
                         console.log("status is not defind");
-                        return res.redirect('/index');
+                        return res.redirect('/');
                 }
             } else {
                 if (userDataAccess === null) {
@@ -47,7 +47,7 @@ module.exports = async function (req, res, next) {
                         case "passwordNone":
                             //res.cookie('redirect_errors', true);
                             return next();
-                        case "/index":
+                        case "/":
                             return next();
                         default:
                             res.redirect("/" + token[0]);
