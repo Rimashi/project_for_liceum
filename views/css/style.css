@@ -1084,7 +1084,7 @@ body {
     justify-content: space-between;
     flex-wrap: wrap;
     margin: 0 0 30px 0;
-    gap: 30px;
+    gap: 0px;
 }
 
 .main-block__left-block {
@@ -1487,7 +1487,7 @@ body {
     border-radius: 15px;
     background: #332175;
     box-shadow: 2px 9px 42px 0px rgba(0, 0, 0, 0.25);
-    padding: 9px 0;
+    padding: 0px 9px;
     min-height: 52px;
     cursor: pointer;
 }
@@ -1514,7 +1514,7 @@ body {
     position: relative;
     flex: 0 0 33.3%;
     padding: 4px;
-
+    word-break: break-all;
     background: #fff;
 }
 
@@ -1552,7 +1552,7 @@ body {
     color: #000;
     text-align: center;
     font-family: Roboto;
-    font-size: 30px;
+    font-size: 26px;
     font-style: normal;
     font-weight: 400;
     line-height: normal;
@@ -1565,6 +1565,10 @@ body {
 
 .schedule-table__table {
     margin: 4px 0 0 0;
+}
+.schedule-table tbody tr .line__column-2 {
+    text-align: start;
+    margin-left: 20px;
 }
 .schedule-table:nth-child(6) > .schedule-table__title {
     background: #aa2b2b;
@@ -1783,6 +1787,8 @@ body {
 @media (max-width: 800px) {
     .left-block-user {
         flex: 0 0 100%;
+
+        gap: 15px;
     }
 }
 .left-block-user__button-add-hometask {
@@ -1798,7 +1804,7 @@ body {
     border-radius: 15px;
     background: #332175;
     box-shadow: 2px 9px 42px 0px rgba(0, 0, 0, 0.25);
-    padding: 14px 0px;
+    padding: 14px 14px;
     flex: 0 1;
     cursor: pointer;
 }
@@ -1817,7 +1823,6 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
 }
 .leader-notice__title-leader-notice {
     color: #000;
@@ -1830,15 +1835,18 @@ body {
 }
 .leader-notice__list-leader-notice {
 }
+
 .list-leader-notice {
     width: 100%;
     overflow: auto;
-    max-height: 370px;
-    gap: 20px;
+    max-height: 330px;
+
     display: flex;
     flex-direction: column;
 }
+
 .list-leader-notice__leader-notice {
+    padding: 14px 10px;
     color: #000;
     text-align: justify;
     font-family: Roboto;
@@ -1847,7 +1855,11 @@ body {
     font-weight: 400;
     line-height: normal;
 }
-
+@media (max-width: 600px) {
+    .list-leader-notice__leader-notice {
+        padding: 10px 0px;
+    }
+}
 .hometask-for-days {
     border-radius: 15px;
     background: #fff;
@@ -1857,7 +1869,6 @@ body {
     flex-direction: column;
     align-items: center;
     width: 100%;
-    word-break: break-all;
 }
 .hometask-for-days__title-hometask-for-days {
     color: #000;
@@ -1914,6 +1925,7 @@ body {
     font-weight: 400;
     line-height: normal;
     flex: auto;
+    word-break: break-all;
 }
 @media (max-width: 600px) {
     .left-block-user__button-add-hometask {
@@ -1937,6 +1949,7 @@ body {
     .hometask-for-day {
         padding: 14px 0px;
     }
+
     .list-leader-notice__leader-notice {
         font-size: 20px;
     }
@@ -1968,7 +1981,7 @@ body {
     border-radius: 15px;
     background: #332175;
     box-shadow: 2px 9px 42px 0px rgba(0, 0, 0, 0.25);
-    padding: 14px 0px;
+    padding: 14px 14px;
     cursor: pointer;
 }
 .button-check-hometask:hover {
@@ -1988,7 +2001,7 @@ body {
     border-radius: 15px;
     background: #332175;
     box-shadow: 2px 9px 42px 0px rgba(0, 0, 0, 0.25);
-    padding: 14px 0px;
+    padding: 14px 14px;
     cursor: pointer;
 }
 .button-add-notice:hover {
@@ -2008,7 +2021,7 @@ body {
     border-radius: 15px;
     background: #332175;
     box-shadow: 2px 9px 42px 0px rgba(0, 0, 0, 0.25);
-    padding: 14px 0px;
+    padding: 14px 14px;
     cursor: pointer;
 }
 .button-add-event:hover {
@@ -2043,6 +2056,7 @@ body {
 @media (max-width: 800px) {
     .main-block-admin {
         padding: 80px 0 0 0;
+        gap: 15px;
     }
 }
 .main-block-admin__left-block-admin {
