@@ -163,7 +163,7 @@ const modals = {
   <h3 class="modal-admin-event__title-add-event _title-modal">
       Лицейские события
   </h3>
-  <form class="modal-admin-event__content-add-event content-add-event">
+  <form method="post" class="modal-admin-event__content-add-event content-add-event">
       <div class="content-add-event__location-event location-event">
           <h4 class="location-event__title">Место проведения:</h4>
           <textarea class="location-event__textarea"></textarea>
@@ -177,22 +177,13 @@ const modals = {
           <h4 class="text-event__title">Событие:</h4>
           <textarea class="text-event__textarea"></textarea>
       </div>
-      <button class="content-add-event__submit">Создать событие</button>
+      <input type="submit" value="Создать событие" class="content-add-event__submit">
   </form>
-  <form class="modal-admin-event__content-table-list content-table-list">
+  <form method="get" class="modal-admin-event__content-table-list content-table-list">
     <div class="content-table-list__table-element-check table-element-check">
-      <div class="element-check__info-check-element info-check-element">
-          <div class="info-check-element__login">3323</div>
-          <div class="info-check-element__date">25.04</div>
-          <div class="info-check-element__date-event">25.04.2023</div>
-          <div class="info-check-element__event-location">каб 234</div>
-      </div>
-      <div class="element-check__content">номер 12-32 </div>
-
-      <div class="element-check__function-table-element function-table-element">
-          <button class="function-table-element__function-button">Удалить</button>
-          <button class="function-table-element__function-button">Бан</button>
-      </div>
+      
+      
+      
     </div>
   
 
@@ -245,7 +236,7 @@ $('.login-button').click(() => {
 
 $('.unlogin-button').click(() => {
     $.get('/logout', function () {
-        window.location.href = "/index";
+        window.location.href = "/";
     })
 });
 
@@ -296,7 +287,6 @@ $('.button-check-hometask').click(() => {
     openModal('check-hometask');
     let a = $('.content-table-list');
     a.empty();
-    console.log('open');
     $.ajax({
         type: "GET",
         url: "/leader/checkmodal",
@@ -304,7 +294,7 @@ $('.button-check-hometask').click(() => {
             let g = json['hometasks'];
             for (let i in g) {
                 if (g[i].length > 0)
-                    a.append('<div class="content-table-list__table-element-check table-element-check" id="element_check_'+i+'">' +
+                    a.append('<div class="content-table-list__table-element-check table-element-check" id="element_check_' + i + '">' +
                         '<div class="element-check info-check-element">' +
                         '   <div class="info-check-element__login" id="surname' + i + '">' + g[i][0] + '</div>\n' +
                         '        <div class="info-check-element__date" id="date' + i + '">' + g[i][1] + '</div>\n' +
@@ -338,7 +328,7 @@ $('.button-check-hometask').click(() => {
                         console.log(res);
                     }
                 });
-                $('#element_check_'+id).remove();
+                $('#element_check_' + id).remove();
             });
 
             $('.delete_leader').on('click', function (e) {
@@ -359,7 +349,7 @@ $('.button-check-hometask').click(() => {
                         console.log(res);
                     }
                 });
-                $('#element_check_'+id).remove();
+                $('#element_check_' + id).remove();
             });
 
             $('.ban_leader').on('click', function (e) {
@@ -380,7 +370,7 @@ $('.button-check-hometask').click(() => {
                         console.log(res);
                     }
                 });
-                $('#element_check_'+id).remove();
+                $('#element_check_' + id).remove();
             });
         }
     });
@@ -398,6 +388,77 @@ $('.button-add-event').click(() => {
 
 $('.button-event-admin').click(() => {
     openModal('admin-event');
+    let a = $('.content-table-list');
+    a.empty();
+    $.ajax({
+        type: "GET",
+        url: "/admin/eventModal",
+        success: function (json) {
+            let g = json['events'];
+            console.log(g);
+            for (let i in g) {
+                console.log(g[i]['place']);
+                if (g[i].length > 0)
+                    a.append(
+                        '<div class="content-table-list__table-element-check table-element-check" id="element_check_' + i + '">' +
+                        '        <div class="element-check__info-check-element info-check-element">\n' +
+                        '            <div class="info-check-element__date" id="text' + i + '">g[i]["text"]</div>\n' +
+                        '            <div class="info-check-element__date-event" id="date' + i + '">g[i]["date"]</div>\n' +
+                        '            <div class="info-check-element__event-location" id="place' + i + '">g[i]["place"]</div>\n' +
+                        '        </div>' +
+                        //'    <div class="element-check__content">номер 12-32 </div>' +
+
+                        '    <div class="element-check__function-table-element function-table-element">\n' +
+                        '        <button class="function-table-element__function-button" name="delete" id="del_' + i + '">Удалить</button>' +
+                        '        <button class="function-table-element__function-button" name="ban" id="ban_' + i + '">Бан</button>' +
+                        '   </div>' +
+                        '</div>');
+            }
+            //     $('.delete_leader').on('click', function (e) {
+            //         let id = e.target.id.split('_')[1];
+            //         console.log(id);
+            //         let kok = $('#surname' + id).text();
+            //         let kok1 = $('#date' + id).text();
+            //         let kok2 = $('#subject' + id).text();
+            //         console.log(kok, kok1, kok2);
+            //         $.ajax({
+            //             type: "GET",
+            //             url: '/leader/modal/del',
+            //             dataType: "json",
+            //             processData: true,
+            //             contentType: false,
+            //             data: {data: {kok, kok1, kok2}},
+            //             success: function (res) {
+            //                 console.log(res);
+            //             }
+            //         });
+            //         $('#element_check_' + id).remove();
+            //     });
+            //
+            //     $('.ban_leader').on('click', function (e) {
+            //         let id = e.target.id.split('_')[1];
+            //         console.log(id);
+            //         let kok = $('#surname' + id).text();
+            //         let kok1 = $('#date' + id).text();
+            //         let kok2 = $('#subject' + id).text();
+            //         console.log(kok, kok1, kok2);
+            //         $.ajax({
+            //             type: "GET",
+            //             url: '/leader/modal/ban',
+            //             dataType: "json",
+            //             processData: true,
+            //             contentType: false,
+            //             data: {data: {kok, kok1, kok2}},
+            //             success: function (res) {
+            //                 console.log(res);
+            //             }
+            //         });
+            //         $('#element_check_' + id).remove();
+            //     });
+        }
+    });
+
+
 });
 
 $('.button-hometask-admin').click(() => {
