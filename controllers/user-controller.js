@@ -10,37 +10,13 @@ function ucfirst(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-// const subjectsDict = {
-//     "8_А": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "8_Б": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "8_В": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "8_Г": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "8_Д": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "8_Е": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "9_А": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "9_Б": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "9_В": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "9_Г": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "9_Д": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "9_Е": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "10_А": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "10_Б": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "10_В": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "10_Г": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "10_Д": ["Англ. язык", "Биология", "География", "Информатика", "Литература", "Математика", "Обж", "Общество", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "11_А": ["Англ. язык", "Астрономия", "Биология", "Информатика", "История", "Литература", "Математика", "Обж", "Общество", "Родной Язык", "Русский язык", "Физ-ра", "Физика"],
-//     "11_Б": ["Англ. язык", "Астрономия", "Биология", "География", "Информатика", "История", "Литература", "Математика", "Общество", "Родной Язык", "Русский язык", "Физ-ра", "Физика", "Экономика"],
-//     "11_В": ["Англ. язык", "Астрономия", "География", "Информатика", "История", "Литература", "Математика", "Обж", "Общество", "Web", "Python", "Родной Язык", "Русский язык", "Физ-ра", "Физика", "Химия"],
-//     "11_Г": ["Англ. язык", "Астрономия", "Биология", "Генетика", "География", "Информатика", "История", "Литература", "Математика", "Обж", "Общество", "Родной Язык", "Русский язык", "Физ-ра", "Химия"],
-//     "11_Д": ["Англ. язык", "Астрономия", "Биология", "География", "Информатика", "История", "Литература", "Математика", "Немецкий", "Обж", "Общество", "Русский язык", "Стр", "ТП", "Физ-ра", "Французский", "Физика"]
-// }
 
 class UserController {
     async registration(req, res, next) {
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                return res.render(createPath('index'));
+                return res.render(createPath(''));
             }
 
             const {name, surname, login, pass, class_, status} = req.body;
@@ -59,13 +35,13 @@ class UserController {
         try {
             const {login, pass} = req.body;
 
-            const userData = await userService.login(login.toLowerCase(), pass);
+            const userData = await userService.login(login.trim().toLowerCase(), pass);
             //console.log(userData);
             switch (userData) {
                 case "userNone":
-                    return res.redirect("/index");
+                    return res.redirect("/");
                 case "passwordNone":
-                    return res.redirect("/index");
+                    return res.redirect("/");
             }
             //console.log(userData.user.status);
             res.cookie('accessToken', userData.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true, secure: true});
@@ -78,8 +54,6 @@ class UserController {
             switch (userData.data[0]) {
                 case "student":
                     const str = userData.data[1] + " " + userData.data[2];
-                    //console.log(str);
-                    //console.log("try to redirect");
                     return res.redirect("/student");
                 case "leader":
                     return res.redirect("/leader");
@@ -87,7 +61,7 @@ class UserController {
                     return res.redirect("/admin");
                 default:
                     console.log("status is not defind");
-                    return res.redirect('/index');
+                    return res.redirect('/');
             }
         } catch (e) {
             return next(e);
@@ -103,7 +77,7 @@ class UserController {
             //console.log(`token - ${token}, refresh - ${refreshToken}`);
             res.clearCookie('refreshToken');
             res.clearCookie('accessToken');
-            return res.redirect('/index');
+            return res.redirect('/');
         } catch (e) {
             return next(e);
         }
@@ -144,7 +118,7 @@ class UserController {
                     subjects_: subjects
                 });
             }
-            return res.redirect('/index');
+            return res.redirect('/');
         } catch (e) {
             return next(e);
         }
@@ -238,7 +212,7 @@ class UserController {
             const surname = await userService.student(refreshToken);
             const notify = await userService.getNotification(surname.class);
             if (surname.status !== "student")
-                return res.redirect('/index');
+                return res.redirect('/');
             const homework = await userService.getHomework(refreshToken);
             let events = await userService.getEvents();
             //console.log(homework, ' - homework');
@@ -373,7 +347,7 @@ class UserController {
             const isDone = await userService.clearHomework();
 
             if (user.status !== "leader")
-                return res.redirect(createPath('/index'));
+                return res.redirect(createPath('index'));
 
             const homework = await userService.getHomework(refreshToken);
 
@@ -409,21 +383,21 @@ class UserController {
             if (notification) {
                 let eventAdd = await userService.leaderNotification(refreshToken, notification);
                 surname = await userService.leader(refreshToken);
-                if (notification) {
+                if (eventAdd) {
                     console.log("was add notification");
-                    return res.redirect('/index');
+                    return res.redirect('/');
                 } else {
                     surname = await userService.leader(refreshToken);
-                    return res.redirect('/index');
+                    return res.redirect('/');
                 }
             } else {
                 if (location && date && text) {
                     let eventAdd = await userService.leaderEvents(refreshToken, location, date, text);
                     if (eventAdd) {
                         console.log("was add event");
-                        return res.redirect('/index');
+                        return res.redirect('/');
                     } else {
-                        return res.redirect('/index');
+                        return res.redirect('/');
                     }
                 } else {
                     surname = await userService.writeHomework(refreshToken, homework_text, subject, date);
@@ -508,13 +482,9 @@ class UserController {
 //add------------------------------------------------
     async leaderModalAdd(req, res, next) {
         try {
-            //console.log("function work");
-            // let {refrechToken} = req.cookies;
-            // console.log(refrechToken);
-            // let user = await userService.leader(refrechToken);
             let data = req.query;
             let userData = await userService.leaderHomeworkAdd(data['data']);
-            return res.redirect('/index');
+            return res.redirect('/');
         } catch (e) {
             console.log(e);
         }
@@ -525,7 +495,7 @@ class UserController {
         try {
             let data = req.query;
             let userData = await userService.leaderHomeworkDel(data['data']);
-            return res.redirect('/index');
+            return res.redirect('/');
         } catch (e) {
             console.log(e);
         }
@@ -536,7 +506,7 @@ class UserController {
         try {
             let data = req.query;
             let userData = await userService.leaderHomeworkBan(data['data']);
-            return res.redirect('/index');
+            return res.redirect('/');
         } catch (e) {
             console.log(e);
         }
@@ -553,7 +523,135 @@ class UserController {
             const isDone = await userService.clearHomework();
             if (user.status === "admin")
                 return res.render(createPath("main-admin"));
-            else return res.redirect("/index");
+            else return res.redirect("/");
+        } catch (e) {
+            return next(e);
+        }
+    }
+
+//Post: Events, Notifications, Hometasks
+    async adminPagePost(req, res, next) {
+        try {
+            const {refreshToken} = req.cookies;
+            //let {homework_text, subject, date, text, location, class_} = req.body;
+            //let {notification, class_} = req.body;
+            let surname;
+
+            if (notification && class_) {
+                let eventAdd = await userService.adminNotification(refreshToken, notification, class_);
+                surname = await userService.admin(refreshToken);
+                if (eventAdd) {
+                    console.log("was add notification");
+                    return res.redirect('/');
+                } else {
+                    surname = await userService.admin(refreshToken);
+                    return res.redirect('/');
+                }
+            } else {
+                if (location && date && text && class_) {
+                    let eventAdd = await userService.leaderEvents(refreshToken, location, date, text, class_);
+                    if (eventAdd) {
+                        console.log("was add event");
+                        return res.redirect('/');
+                    } else {
+                        return res.redirect('/');
+                    }
+                } else {
+                    surname = await userService.writeHomework(refreshToken, homework_text, subject, date, class_);
+                    let homework = await userService.getHomework(refreshToken);
+                    switch (surname.problems) {
+                        case "noneDate":
+                            console.log("date was not selected");
+                            return res.render(createPath("main-admin"), {
+                                homework: homework,
+                                problems: "date was not selected",
+                            });
+                        case "noneHomework":
+                            console.log("Homework was not write");
+                            return res.render(createPath("main-leader"), {
+                                homework: homework,
+                                problems: "Homework was not write",
+                            });
+                        case "noneSubject":
+                            console.log("subject was not selected");
+                            return res.render(createPath("main-leader"), {
+                                homework: homework,
+                                problems: "subject was not selected",
+                            });
+                        case "none":
+                            return res.render(createPath("main-leader"), {
+                                homework: homework,
+                                problems: "none",
+                            });
+                        default:
+                            console.log("smth wrong with homework");
+                            return res.render(createPath("main-leader"), {
+                                homework: homework,
+                                problems: "unknown",
+                            });
+                    }
+                }
+            }
+        } catch (e) {
+            return next(e);
+        }
+    }
+
+//rout for hometask check modal--------------------------------------------
+//get classes---------------------------------------
+    async adminCheckClass(req, res, next) {
+        try {
+            const {refreshToken} = req.cookies;
+            const user = await userService.leader(refreshToken);
+            let classes = await userService.getClasses();
+            return res.json({classes: classes});
+        } catch (e) {
+            return next(e);
+        }
+    }
+
+//get subjects---------------------------------------
+    async adminCheckSub(req, res, next) {
+        try {
+            const {refreshToken} = req.cookies;
+            let {data} = req.query;
+            let subjects = await userService.getSubjects(data['data']['class']);
+            return res.json({subjects: subjects});
+        } catch (e) {
+            return next(e);
+        }
+    }
+
+
+//Events---------------------------------------------------------
+//Get--------------------------------
+
+    async adminEventGet(req, res, next) {
+        try {
+            let events = await userService.getEvents();
+            return res.json({events: events});
+        } catch (e) {
+            return next(e);
+        }
+    }
+
+//Delete event----------------------
+    async adminEventsDel(req, res, next) {
+        try {
+            let data = req.query;
+            let userData = await userService.adminEventDel(data['data']);
+            return res.redirect('/');
+        } catch (e) {
+            return next(e);
+        }
+    }
+
+//Ban user-------------------------
+    async adminEventsBan(req, res, next) {
+        try {
+            let data = req.query;
+            let userData = await userService.adminEventBan(data['data']);
+            return res.redirect('/');
         } catch (e) {
             return next(e);
         }
@@ -567,15 +665,13 @@ class UserController {
             const token = await userService.refresh(refreshToken);
             if (token === "userNone" || token === "passwordNone" || null)
                 return token;
-            //console.log(`token  - ${token}`)///
-            //console.log(`access token - ${token.accessToken} :: ${token.refreshToken} -- valid -- ${tokenService.validateRefreshToken(token.refreshToken)}`);
-            //console.log(`find - ${await tokenService.findToken(token.refreshToken)}`);///
-            // try {
-            //     res.cookie('accessToken', token.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true, secure: true});
-            //     res.cookie('refreshToken', token.refreshToken, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: true});
-            // } catch (e) {
-            //     //console.log(e);
-            // }
+            try {
+                res.cookie('accessToken', token.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true, secure: true});
+                res.cookie('refreshToken', token.refreshToken, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: true});
+            } catch (e) {
+                next();
+                //console.log(e);
+            }
             switch (token.data[0]) {
                 case "student":
                     return token.data;
@@ -585,7 +681,7 @@ class UserController {
                     return token.data;
                 default:
                     console.log("status is not defind");
-                    return '/index';
+                    return '/';
             }
         } catch (e) {
             return next(e);
