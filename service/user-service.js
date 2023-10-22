@@ -189,6 +189,18 @@ class UserService {
     }
 
 //GETERS----------------------------------------------------------------------------------------------------------------
+//get classes-----------------------------------------------------
+    async getClasses() {
+        let timetables = await timetableModel.find();
+        let classes = [];
+        for (let i in timetables) {
+            classes.push(timetables[i]['class']);
+        }
+
+        return classes;
+
+    }
+
 //get all subjects for class--------------------------------------
     async getSubjects(class_) {
         const week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -287,6 +299,26 @@ class UserService {
             }
         }
 
+        data.sort((a, b) => {
+            if (Number(a.date.split('.')[2]) < Number(b.date.split('.')[2])) {
+                return -1;
+            } else if (Number(a.date.split('.')[2]) > Number(b.date.split('.')[2])) {
+                return 1;
+            } else {
+                if (Number(a.date.split('.')[1]) < Number(b.date.split('.')[1])) {
+                    return -1;
+                } else if (Number(a.date.split('.')[1]) > Number(b.date.split('.')[1])) {
+                    return 1;
+                } else {
+                    if (Number(a.date.split('.')[0]) < Number(b.date.split('.')[0])) {
+                        return -1;
+                    } else if (Number(a.date.split('.')[0]) >= Number(b.date.split('.')[0])) {
+                        return 1;
+                    }
+                }
+            }
+        });
+
         return data;
     }
 
@@ -305,7 +337,6 @@ class UserService {
         for (let i in notification) {
             data.push(notification[i].text);
         }
-
         notification = await notificationModel.find();
         for (let i in notification) {
             let notifyDay = Number(notification[i]['date'].split('.')[0]);
@@ -320,13 +351,13 @@ class UserService {
         }
 
 
-        if (!notification)
+        if (!data || data.length === 0 || data === [])
             return "none";
         return data;
     }
 
 //homework---------------------------------------------------------------
-//get---------------------------------------------------------------добавить проверку на proved от старосты
+//get---------------------------------------------------------------добавить проверку на рейтинг
     async getHomework(refreshToken) {
         const dt = DateTime.now();
         const userData = tokenService.validateRefreshToken(refreshToken);
@@ -335,25 +366,66 @@ class UserService {
         let tommorow = to_day_month((dt.day + 1)) + "." + to_day_month(dt.month);
         let sendHomework = [];
         let sec = [];
-
+        let Rate = 0;
         let homework = await hometaskModel.find({class: user.class, date: today});
+        if (homework)
+            for (let i in homework) {
+                let user = await UserModel.findOne({surname: homework[i]['surname']});
+                Rate += Number(user['rating']);
+            }
+        if (Rate > 0)
+            Rate /= homework.size;
         for (let i in homework) {
-            if (homework[i]['proved'] === true) {
+            let user = await UserModel.findOne({surname: homework[i]['surname']});
+            if (homework[i]['proved'] === true || Number(user['rating']) === Rate) {
                 let homeworkStr = [homework[i]['date'], homework[i]['subject'], homework[i]['text']];
                 sendHomework.push(homeworkStr);
             }
         }
         sendHomework.sort();
         let homework2 = await hometaskModel.find({class: user.class, date: tommorow});
+        if (homework2)
+            for (let i in homework2) {
+                let user = await UserModel.findOne({surname: homework2[i]['surname']});
+                Rate += Number(user['rating']);
+            }
+        if (Rate > 0)
+            Rate /= homework2.size;
         for (let i in homework2) {
-            if (homework2[i]['proved'] === true) {
+            let user = await UserModel.findOne({surname: homework2[i]['surname']});
+            if (homework2[i]['proved'] === true || Number(user['rating']) === Rate) {
                 let homeworkStr = [homework2[i]['date'], homework2[i]['subject'], homework2[i]['text']];
                 sec.push(homeworkStr);
             }
         }
         sec.sort();
 
-        return [...sendHomework, ...sec];
+
+        let total = [...sendHomework, ...sec];
+        let total_return = [];
+        let date = '';
+        let text = '';
+        let subject = '';
+        for (let i = 0; i < total.length - 1; i++) {
+            if (total[i][0] === total[i + 1][0] && total[i][1] === total[i + 1][1]) {
+                text += total[i][2] + ". ";
+            } else {
+                text += total[i][2];
+                date = total[i][0];
+                subject = total[i][1];
+                total_return.push([date, subject, text]);
+                text = '';
+            }
+        }
+        if (total.length > 0) {
+            text += total[total.length - 1][2];
+            date = total[total.length - 1][0];
+            subject = total[total.length - 1][1];
+            total_return.push([date, subject, text]);
+        }
+
+
+        return total_return;
     }
 
 //write---------------------------------------------------------------
@@ -709,6 +781,47 @@ class UserService {
         return user;
     }
 
+//Events-----------------------------------------------------------
+//Delete------------------------------
+    async adminEventDel(data) {
+        let event = await eventModel.deleteOne({
+            place: data['kok'],
+            date: data['kok1'],
+            text: data['kok2']
+        });
+        return true;
+    }
+
+//Ban-------------------------------
+    async adminEventBan(data) {
+
+        let event = await eventModel.deleteOne({
+            place: data['kok'],
+            date: data['kok1'],
+            text: data['kok2']
+        });
+
+        let user = await UserModel.findOne({surname: data['kok'].toLowerCase()});
+        let rating = user.rating;
+
+        if (rating > 0) {
+            let update_user = await UserModel.updateOne({surname: data['kok'].toLowerCase()}, {
+                $set: {
+                    rating: (rating - 1),
+                    ban: date
+                }
+            });
+        } else {
+            let update_user = await UserModel.updateOne({surname: data['kok'].toLowerCase()}, {
+                $set: {
+                    rating: rating,
+                    ban: date
+                }
+            });
+        }
+
+        return true;
+    }
 
 //TIMETABLE-------------------------------------------------------------------------------------------------------------
 //registration--------------------------------------------------------------
