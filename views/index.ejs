@@ -4,39 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="only light">
+
+    <meta name="yandex-verification" content="18429c78c9250073"/>
+    <meta name="google-site-verification" content="Fm35dWlISmRpHohRS2wdWOpIVxXPlX4Y_X-LX8VJfE4"/>
+
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css?family=Roboto:regular,500,700&display=swap" rel="stylesheet"/>
 
-
-    <link href="https://fonts.googleapis.com/css?family=Ubuntu:700&display=swap" rel="stylesheet"/>
     <title>Бийский Лицей</title>
 </head>
 <body>
 <div class="wrapper">
-    <header class="header">
-        <div class="header__container _container">
-            <a href="/" class="header__logo logo">
-                <div class="logo__img"><img src="img/header/Logo.svg" alt="Logo"></div>
-                <div class="logo__text">ийский Лицей</div>
-            </a>
-            <div class="header__actions header-action">
-                <div class="header-action__burger burger">
-                    <div class="burger__icon">
-                        <span></span>
-                    </div>
-                    <nav class="burger__menu">
-                        <ul class="burger__list">
-                            <li><a href="/schedule" class="burger__link">Расписание</a></li>
-                            <li><a href="" class="burger__link">Карта</a></li>
-                            <li><a href="/subject" class="burger__link">Предметы</a></li>
-                            <li><a href="/info" class="burger__link">Информация</a></li>
-                        </ul>
-                    </nav>
-                </div>
-                <button class="header-action__login-button login-button">Войти</button>
-            </div>
-        </div>
-    </header>
+
+    <%- include partials/header.ejs %>
 
     <main class="page">
         <div class="page__container _container">
@@ -50,42 +29,42 @@
                             <a href="/schedule" class="info-block__button">Посмотреть больше</a>
                         </div>
                         <div class="function__img">
-                            <img src="img/index/main/main.png" alt="Расписание" class="_img-function">
+                            <img src="img/index/main/schedule.png" alt="Расписание" class="_img-function">
                         </div>
                     </div>
                     <div class="left-block__function function">
                         <div class="function__img">
-                            <img src="img/index/main/main.png" alt="Карта Лицея" class="_img-function">
+                            <img src="img/index/main/map.png" alt="Карта Лицея" class="_img-function">
                         </div>
                         <div class="function__info info-block">
                             <h2 class="info-block__title" style="color: #069ABB;">Карта Лицея</h2>
                             <div class="info-block__description">Карта с полезной информацией
 
                             </div>
-                            <a href="" class="info-block__button">Посмотреть больше</a>
+                            <a href="/map" class="info-block__button">Посмотреть больше</a>
                         </div>
                     </div>
                     <div class="left-block__function function">
                         <div class="function__info info-block">
-                            <h2 class="info-block__title" style="color: #F33535;">Учебные предметы</h2>
-                            <div class="info-block__description">ДЗ и другое
-                            </div>
-                            <a href="/subject" class="info-block__button">Посмотреть больше</a>
-                        </div>
-                        <div class="function__img">
-                            <img src="img/index/main/main.png" alt="Учебные предметы" class="_img-function">
-                        </div>
-                    </div>
-                    <div class="left-block__function function">
-                        <div class="function__img">
-                            <img src="img/index/main/main.png" alt="Информация о Лицее" class="_img-function">
-                        </div>
-
-                        <div class="function__info info-block">
-                            <h2 class="info-block__title" style="color: #8435C2;">Информация о Лицее</h2>
+                            <h2 class="info-block__title" style="color: #F33535;">Информация о Лицее</h2>
                             <div class="info-block__description">Информация о Лицее
                             </div>
                             <a href="/info" class="info-block__button">Посмотреть больше</a>
+                        </div>
+                        <div class="function__img">
+                            <img src="img/index/main/info.png" alt="Учебные предметы" class="_img-function">
+                        </div>
+                    </div>
+                    <div class="left-block__function function">
+                        <div class="function__img">
+                            <img src="img/index/main/" alt="Информация о Лицее" class="_img-function">
+                        </div>
+
+                        <div class="function__info info-block">
+                            <h2 class="info-block__title" style="color: #8435C2;">Помощь</h2>
+                            <div class="info-block__description">Информация о функциях сайта
+                            </div>
+                            <a href="/help" class="info-block__button">Посмотреть больше</a>
                         </div>
                     </div>
                 </div>
@@ -115,7 +94,9 @@
             </div>
         </div>
     </main>
-    <footer class="footer"></footer>
+    <footer class="footer">
+        <%- include partials/footer.ejs %>
+    </footer>
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="js/script.js"></script>

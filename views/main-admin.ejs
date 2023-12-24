@@ -3,63 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css?family=Roboto:regular,500,700&display=swap" rel="stylesheet"/>
     <meta name="color-scheme" content="only light">
 
-    <link href="https://fonts.googleapis.com/css?family=Ubuntu:700&display=swap" rel="stylesheet"/>
-    <title>Главная страница старосты</title>
+    <link rel="stylesheet" href="css/style.css">
+
+    <title>Админка</title>
 </head>
 <body>
 <div class="wrapper">
 
     <%- include partials/header-admin.ejs %>
 
+
+
+
+
+
     <main class="page">
         <div class="page__container _container">
             <div class="page__main-block-admin main-block-admin">
                 <div class="main-block-admin__left-block-admin left-block-admin">
                     <div class="left-block-admin__function-block-admin function-block-admin">
-                        <button class="function-block-admin__button-timetable-admin button-timetable-admin _admin-button">
-                            Расписание
-                        </button>
-                        <button class="function-block-admin__button-event-admin button-event-admin _admin-button">
-                            Лицейские события
-                        </button>
-                        <button class="function-block-admin__button-listuser-admin button-listuser-admin _admin-button">
-                            Список учеников
-                        </button>
-                        <button class="function-block-admin__button-hometask-admin button-hometask-admin _admin-button">
-                            Добавить ДЗ
-                        </button>
-                        <button class="function-block-admin__button-notice-admin button-notice-admin _admin-button">
-                            Уведомления
-                        </button>
+                        <button class="function-block-admin__button-timetable-admin button-timetable-admin _admin-button">Расписание</button>
+                        <button class="function-block-admin__button-event-admin button-event-admin _admin-button">Лицейские события</button>
+                        <button class="function-block-admin__button-notice-admin button-notice-admin _admin-button">Уведомления</button>
+
+                        <button class="function-block-admin__button-list-user-admin button-list-user-admin _admin-button" id="users_list_button">Список пользователей</button>
                     </div>
                 </div>
 
                 <div class="main-block-admin__right-block-admin right-block-admin">
-                    <div class="right-block-admin__check-hometask check-hometask">
-
-                        <h3 class="check-hometask__title-check-hometask">
-                            Проверка ДЗ
-                        </h3>
-                        <div class="check-hometask__content-table-list content-table-list">
-                            <div class="content-table-list__table-element-check table-element-check">
-                                <div class="element-check__info-check-element info-check-element">
-                                    <div class="info-check-element__login">3323</div>
-                                    <div class="info-check-element__date">25.04</div>
-                                    <div class="info-check-element__subject">Русский яз:</div>
-                                </div>
-                                <div class="element-check__content">номер 12-32</div>
-
-                                <div class="element-check__function-table-element function-table-element">
-                                    <button class="function-table-element__function-button">Удалить</button>
-                                    <button class="function-table-element__function-button">Бан</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                 </div>
             </div>
@@ -69,7 +42,8 @@
     </footer>
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="js/script.js"></script>
+<script src="js/admin-script.js"></script>
 </body>
 
 </html>
+

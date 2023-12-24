@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css?family=Roboto:regular,500,700&display=swap" rel="stylesheet"/>
     <meta name="color-scheme" content="only light">
 
-    <link href="https://fonts.googleapis.com/css?family=Ubuntu:700&display=swap" rel="stylesheet"/>
     <title>Главная страница ученика</title>
 </head>
 <body>
@@ -20,9 +18,12 @@
             <div class="page__main-block main-block">
                 <div class="main-block__left-block-user left-block-user">
                     <button class="left-block-user__button-add-hometask button-add-hometask">Добавить ДЗ</button>
+                    <% if(!isChange){%>
+                        <%- include partials/log-pass.ejs%>
+                    <%}%>
                     <div class="left-block-user__leader-notice leader-notice">
                         <h2 class="leader-notice__title-leader-notice">Уведомление от старост</h2>
-                        <% if (notification !== "none" && notification.length != 0){ %>
+                        <% if (notification !== "none" && notification.length !== 0){ %>
                             <% for (let i in notification){ %>
                                 <div class="leader-notice__list-leader-notice list-leader-notice">
                                     <div class="list-leader-notice__leader-notice">
@@ -40,6 +41,17 @@
                                         <div class="hometask-for-day__date"><%= homework[i][0] %></div>
                                         <div class="hometask-for-day__subject"><%= homework[i][1] %></div>
                                         <div class="hometask-for-day__task"><%= homework[i][2] %></div>
+                                        <% let fileSt = '' %>
+                                        <% for(let file in homework[i][3]){ %>
+                                            <% if((Number(file) + 1) === homework[i][3].length){
+                                                fileSt += homework[i][3][file];
+                                            }else{
+                                                fileSt += homework[i][3][file] + ":";
+                                            } %>
+                                        <% } %>
+                                        <% if (fileSt.length > 0){ %>
+                                            <button id="download" value="<%= fileSt %>" class="hometask-for-day__download"></button>
+                                        <% } %>
                                     </div>
                             <% } } %>
                         </div>
@@ -71,7 +83,9 @@
             </div>
         </div>
     </main>
-    <footer class="footer"></footer>
+    <footer class="footer">
+        <%- include partials/footer-login.ejs %>
+    </footer>
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="js/script.js"></script>

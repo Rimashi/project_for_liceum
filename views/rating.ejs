@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="only light">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <title>Рейтинг ученика</title>
+</head>
+<body>
+<div class="wrapper">
+
+    <% if (header === 'user') { %>
+        <%- include partials/header-user.ejs %>
+    <% } else if (header === 'header'){ %>
+        <%- include partials/header.ejs %>
+    <% } %>
+
+    <main class="page">
+        <div class="page__container _container">
+            <div class="page__rating-main-block rating-main-block">
+                <h1 class="rating-main-block__title">Рейтинг</h1>
+                <div class="rating-main-block__content-block content-block">
+                    <div class="content-block__left-block-rating left-block-rating">
+                        <div class="left-block-rating__rating-class rating-class">
+                            <h2 class="rating-class__title">Ученики</h2>
+                            <select name="person_rating" id="person_rating" class="rating-class__select">
+                                <option value="parallel">Параллель</option>
+                                <option value="class">Класс</option>
+                            </select>
+                        </div>
+                        <table class="left-block-rating__rating-table table" id="rating">
+                            <% for(let i = 0;i < rating.length;i++){ %>
+                                <tr class="table__line line">
+                                    <td class="line__column-1">
+                                        <%= (i + 1) + "." %>
+                                    </td>
+                                    <td class="line__column-2">
+                                        <%= rating[i][1] + " " + rating[i][0] %>
+                                    </td>
+                                    <td class="line__column-3">
+                                        <%= rating[i][2] %>
+                                    </td>
+                                    <td class="line__column-4"><%= rating[i][3] %></td>
+                                </tr>
+                            <% } %>
+                            <tr class="table__line line">
+                                <td class="line__column-separation"><span class="separation-line"></span></td>
+                            </tr>
+                            <tr class="table__line line">
+                                <td class="line__column-1">
+                                    <%= userRating[0] + "." %>
+                                </td>
+                                <td class="line__column-2">Ты</td>
+                                <td class="line__column-3">
+                                    <%= userRating[1].split("_")[0] + userRating[1].split("_")[1] %>
+                                </td>
+                                <td class="line__column-4">
+                                    <%= userRating[2] %>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="content-block__right-block-raiting right-block-rating">
+                        <div class="right-block-rating__rating-class rating-class">
+                            <h2 class="rating-class__title">Классы</h2>
+                            <select name="classes" id="classes" class="rating-class__select">
+                                <% for(let i in parallel[1]){ %>
+                                    <option value="<%= parallel[1][i] %>"><%= parallel[1][i] %></option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <table class="right-block-rating__rating-table table" id="class_rate">
+                            <% for(let i = 0;i < parallel[0].length;i++){ %>
+                                <tr class="table__line line">
+                                    <td class="line__column-1"><%= i + 1 %>.</td>
+                                    <td class="line__column-2"><%= parallel[0][i][0].split("_")[0] + parallel[0][i][0].split("_")[1] %></td>
+                                    <td class="line__column-4"><%= parallel[0][i][1] %></td>
+                                </tr>
+                            <% } %>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<footer class="footer">
+    <% if (header === 'user') { %>
+        <%- include partials/footer-login.ejs %>
+    <% } else if (header === 'header'){ %>
+        <%- include partials/footer.ejs %>
+    <% } %>
+</footer>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="js/script.js"></script>
+<script src="js/rating.js"></script>
+</body>
+</html>

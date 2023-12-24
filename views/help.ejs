@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="only light">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <title>Помощь</title>
+</head>
+<body>
+<div class="wrapper">
+    <% if (header === 'user') { %>
+        <%- include partials/header-user.ejs %>
+    <% } else if (header === 'header'){ %>
+        <%- include partials/header.ejs %>
+    <% } %>
+
+    <main class="page">
+        <div class="page__container _container">
+            <div class="page__information-content information-content">
+                <div class="inforamtion-content__information-choices information-choices">
+                    <button class="information-choices__button-choice choice-active" id="choice-1"
+                            onclick="changeText(1)">Функции
+                    </button>
+                    <button class="information-choices__button-choice" id="choice-2" onclick="changeText(2)">Ученик
+                    </button>
+                    <button class="information-choices__button-choice" id="choice-3" onclick="changeText(3)">Староста
+                    </button>
+                    <button class="information-choices__button-choice" id="choice-4" onclick="changeText(4)">FAQ
+                    </button>
+                </div>
+                <div class="information-content__information-blocks information-blocks" id="information-blocks-1">
+                    <div class="information-blocks__information-block information-block-full">
+
+                        <h1 class="information-block__title-information title-information">Общие функции сайта</h1>
+                        <h2 class="information-block__title-information title-information">Расписание</h2>
+                        <div class="information-block__information-img-1 information-img-1">
+                            <img src="img/help/timetable.png" alt="Расписание"
+                                 class="_img-information" style="height: 500px;max-width:none">
+                        </div>
+                        <div class="information-block__information-text information-text">
+                            Итак, вы зашли на страницу с расписанием. Слева - расписание звонков обычное и сокращенное
+                            (субботнее). Справа - расписание предметов для каждого класса с 8 по 11 включительно. Если
+                            вы не зашли в аккаунт, то увидите расписание для всех, если же вы зашли в аккаунт, то
+                            увидите расписание своей параллели.
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h2 class="information-block__title-information title-information">Карта</h2>
+                        <div class="information-block__information-text information-text">
+                            <div class="information-text__information-img-2 information-img-2">
+                                <img src="img/help/map.png" alt="карта"
+                                     class="_img-information" style="height: 200px;max-width:none">
+                            </div>
+                            <div class="information-block__information-text information-text">
+                                Если вы зашли на эту страницу, то либо вы новенький (добро пожаловать к нам в Лицей),
+                                либо вам просто интересно, что это такое.<br>
+                                Итак, картой пользоваться легко, как вы видите, вы можете увеличивать ее и отдалять,
+                                также можете перетаскивать ее.
+                                У нас есть интерактивные кнопки, которые отвечают за этажи. Как вы могли заметить, есть
+                                помещения, которые никак не обозначены - это служебные помещения, туда ученикам заходить
+                                просто так не стоит).
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h2 class="information-block__title-information title-information">Блок “Добавить логин и
+                            пароль”</h2>
+                        <div class="information-block__information-text information-text">
+                            <div class="information-text__information-img-2 information-img-2">
+                                <img src="img/help/addLogPass.png" alt="добавить логин и пароль"
+                                     class="_img-information" style="height: 200px;max-width:none">
+                            </div>
+                            <div class="information-block__information-text information-text">У вас есть возможность
+                                “Добавить логин и пароль”.
+                                Если вы захотите задать логин и пароль, просто запишите их и нажмите “Сохранить”, блок
+                                сам автоматически удалиться и при дальнейших заходах вы его не увидите. Если же вы
+                                захотите поменять логин и пароль, попросите об этом админа, и у вас появиться вновь
+                                данный блок, и вы сможете задать новые логин и пароль.
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="information-content__information-blocks information-blocks" id="information-blocks-2">
+                    <div class="information-blocks__information-block information-block-full">
+                        <h2 class="information-block__title-information title-information">Модальное окно “Добавление
+                            ДЗ”</h2>
+                        <div class="information-block__information-text information-text">
+                            <div class="information-text__information-img-2 information-img-2">
+                                <img src="img/help/addStudHT.png" alt="добавление дз ученика" class="_img-information"
+                                     style="height: 200px;max-width:none">
+                            </div>
+                            <div class="information-block__information-text information-text">Вы захотели добавить
+                                домашнее задание, и видите перед собой такое модальное окно, давайте разбираться.
+                                <br>
+                                Для начала выберите предмет для которого вы хотите добавить ваше домашнее задание, для
+                                каждого класса список предметов будет свой.
+                                Затем вы сможете выбрать дату. Дата вашего следующего урока подставится автоматически,
+                                однако вы можете выбрать и последующие даты. (к примеру: История есть один раз на
+                                неделе, значит вы сможете добавить домашнее задание на следующую неделю, через неделю, и
+                                через две).
+                                Далее напиши, что задано, текст.
+                                <br>
+                                <br>
+                                Примечания:
+                                <ol>
+                                    <li>
+                                        1) Учтите, что один человек не может добавить более одной записи на один и тот
+                                        же
+                                        предмет и дату.
+                                    </li>
+                                    <li>
+                                        2) Пишите только то, что задано, модератор проверяет ваши записи и может как
+                                        добавить вашу запись в список отображаемых, так и удалить ее. Если вы будете
+                                        писать что-либо не связанное с заданием(-ями), то модератор в праве вас забанить
+                                        на время.
+                                    </li>
+                                    <li>
+                                        3) Если вы видите, что поле ДЗ окрасилось в красный, то вам необходимо его
+                                        заполнить.
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="information-content__information-blocks information-blocks" id="information-blocks-3">
+                    <div class="information-blocks__information-block information-block-full">
+                        <h2 class="information-block__title-information title-information">Модальное окно “Добавление
+                            ДЗ”</h2>
+                        <div class="information-block__information-text information-text">
+                            <div class="information-text__information-img-2 information-img-2">
+                                <img src="img/help/addLeaderHT.png" alt="добавление дз модератора"
+                                     class="_img-information"
+                                     style="height: 250px;max-width:none">
+                            </div>
+                            <div class="information-block__information-text information-text">В целом метод работы с
+                                данным модальным окном такой же как и у ученика, однако, вы можете также добавлять до 3
+                                файлов, включительно. Файлы могут быть текстовые, видео, фото, код, презентации и
+                                прочее. Главное, чтобы объем файла не превышал 20 мб и их количество было не больше 3.
+                                <br>
+                                Для начала выберите предмет для которого вы хотите добавить ваше домашнее задание, для
+                                каждого класса список предметов будет свой.
+                                Затем вы сможете выбрать дату. Дата вашего следующего урока подставится автоматически,
+                                однако вы можете выбрать и последующие даты. (к примеру: История есть один раз на
+                                неделе, значит вы сможете добавить домашнее задание на следующую неделю, через неделю, и
+                                через две).
+                                Далее напиши, что задано, текст.
+                                Добавьте файл, если это необходимо.
+                                <br>
+                                <br>
+                                Примечания:
+                                <ol class="information-text__information-list information-list">
+                                    <li class="information-list__quest">
+                                        1) Учтите, что один человек не может добавить более одной записи на один и тот
+                                        же
+                                        предмет и дату.
+                                    </li>
+                                    <li class="information-list__quest">
+                                        2) Пишите только то, что задано, модератор проверяет ваши записи и может как
+                                        добавить вашу запись в список отображаемых, так и удалить ее. Если вы будете
+                                        писать что-либо не связанное с заданием(-ями), то модератор в праве вас забанить
+                                        на время.
+                                    </li>
+                                    <li class="information-list__quest">
+                                        3) Если вы видите, что поле ДЗ окрасилось в красный, то вам необходимо его
+                                        заполнить.
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h2 class="information-block__title-information title-information">Модальное окно “Создать
+                            уведомление”</h2>
+                        <div class="information-block__information-text information-text">
+                            <div class="information-text__information-img-2 information-img-2">
+                                <img src="img/help/notice.png" alt="добавление уведомления"
+                                     class="_img-information"
+                                     style="height: 200px;max-width:none">
+                            </div>
+                            <div class="information-block__information-text information-text">Вы решили создать
+                                уведомление, что это такое и с чем это едят?<br>
+                                Уведомление это какое-то сообщение только для своего класса, которое существует ровно
+                                сутки, не больше не меньше. Вы можете добавлять уведомления сколько угодно, главное,
+                                чтобы они были осмысленными.
+                                Если вы напортачили или просто хотите удалить уведомление(свое конечно же), то попросите
+                                админа об этом.
+                                Если поле окрашивается в красный цвет(по контуру), то значит вы не заполнили данное
+                                поле.
+                            </div>
+                        </div>
+                        <div class="information-blocks__information-block information-block-full">
+                            <h2 class="information-block__title-information title-information">Модальное окно “Создать
+                                событие”</h2>
+                            <div class="information-block__information-text information-text">
+                                <div class="information-text__information-img-2 information-img-2">
+                                    <img src="img/help/event.png" alt="добавление события"
+                                         class="_img-information"
+                                         style="height: 200px;max-width:none">
+                                </div>
+                                <div class="information-block__information-text information-text">Вы решили создать
+                                    событие, давайте рассмотрим как это делать.
+                                    <br>
+                                    У вас есть три поля:
+                                    <ol class="information-text__information-list information-list">
+                                        <li class="information-list__quest">
+                                            “Место проведения” - место, где будет проходить мероприятие/событие.
+                                        </li>
+                                        <li class="information-list__quest">
+                                            “Дата проведения” - когда будет проходить данное мероприятие/событие.
+                                        </li>
+                                        <li class="information-list__quest">
+                                            “Событие” - описание самого события.
+                                        </li>
+                                        <li class="information-list__quest">
+                                            Если вы пользовались netschool, то считайте это аналогом объявлений.
+                                        </li>
+                                        <li class="information-list__quest">
+                                            Если какое-либо из полей окрашивается в красный цвет(по контуру), то значит
+                                            вы не заполнили данное поле.
+                                        </li>
+                                        <li class="information-list__quest">
+                                            Если вы ошиблись или просто хотите удалить событие, написанное вами, то
+                                            попросите админа удалить событие.
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="information-content__information-blocks information-blocks" id="information-blocks-4">
+                    <div class="information-blocks__information-block information-block-full">
+                        <div class="information-block__information-text information-text">
+                            <ol class="information-text__information-list information-list">
+                                <li class="information-list__quest">1. Как люди становятся модератором и как я могу им
+                                    стать?
+                                </li>
+                                <p class="information-list__answer">- Статус модератора можно попросить у админа, вам
+                                    дадут возможность побыть админом временно. Если вы будете хорошо выполнять свои
+                                    обязанности, то вам оставят статус модератора. </p>
+
+                                <li class="information-list__quest">2. Что будет с модератором, если он превышает свои
+                                    обязанности?
+                                </li>
+                                <p class="information-list__answer">- Мы просто заберем статус модератора у этого
+                                    человека.</p>
+
+                                <li class="information-list__quest">3. А если у нашего класса нет модератора, что
+                                    тогда?
+                                </li>
+                                <p class="information-list__answer">- Все будет работать и без модерирования, однако у
+                                    вас не будет уведомлений.</p>
+
+                                <li class="information-list__quest">4. Сколько в классе может быть модераторов?</li>
+                                <p class="information-list__answer">- Сколько угодно.</p>
+
+                                <li class="information-list__quest">5. Мы не несем ответственности за скаченные файлы с
+                                    нашего сайта. Если файл имеет странное/необычное/некорректное содержание или
+                                    является вредоносным, просим сообщить об этом администратору, он сможет сказать, кто
+                                    отправил данный файл.
+                                </li>
+                            </ol>
+
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h2 class="information-block__title-information title-information">Возможные ошибки</h2>
+                        <div class="information-block__information-text information-text">
+                            К сожалению, бывает так, что что-то ломается или недоступно, тогда у вас появляется страница
+                            с ошибкой, зачастую там будет написано, что вы сделали не так.
+                            Однако, если вы видите, что поля подчеркиваются красным, а вы не можете зайти, это не
+                            ошибка, проверьте, что вы не ошибаетесь и ввели свои данные правильно!
+
+                            Если вы увидели 500 ошибку, то обратитесь к нам за помощью, мы постараемся вам помочь,
+                            просто нажмите на кнопку и перейдите в телеграмм, там вам помогут. Если найдете какой-либо
+                            баг, тоже будем рады, если сообщите.<br><br>
+                            На этом все, удачного пользования.
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <% if (header === 'user') { %>
+            <%- include partials/footer-login.ejs %>
+        <% } else if (header === 'header'){ %>
+            <%- include partials/footer.ejs %>
+        <% } %>
+    </footer>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="js/script.js"></script>
+</body>
+
+</html>

@@ -5,17 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
     <meta name="color-scheme" content="only light">
-    <link href="https://fonts.googleapis.com/css?family=Roboto:regular,500,700&display=swap" rel="stylesheet"/>
 
-
-    <link href="https://fonts.googleapis.com/css?family=Ubuntu:700&display=swap" rel="stylesheet"/>
     <title>Информация о Лицее</title>
 </head>
 <body>
 <div class="wrapper">
 
     <% if (header === 'user') { %>
-        <%- include partials/header-user.ejs%>
+        <%- include partials/header-user.ejs %>
     <% } else if (header === 'header'){ %>
         <%- include partials/header.ejs %>
     <% } %>
@@ -43,7 +40,7 @@
                                 <img src="img/info/School.png" alt="Бийский лицей" class="_img-information">
                             </div>
                             <strong>Бийский лицей </strong>- это не просто школа, а настоящая платформа для развития
-                            навыков и талнтов ваших детей. В лицее работают одни из лучших преподователей Алтайского
+                            навыков и талантов ваших детей. В лицее работают одни из лучших преподователей Алтайского
                             края и России. Само заведение оснащено новейшими способами обучения детей. А так же входит в
                             огромное колличество номинаций, например как “Топ 200” лучших школ России, обеспечивающих
                             развитие талантов учащихся.
@@ -51,28 +48,27 @@
                     </div>
                     <div class="information-blocks__information-block information-block">
                         <h2 class="information-block__title-information title-information">Совет лицеистов</h2>
-                        <div class="information-block__information-text information-text">Одни из самых важных учащийхся
-                            нашего лицея.
-                            Это наши главные организаторы праздников и кружков. А также просто трудолюбивые и умные
-                            ученики. Благодаря им у нас отличные праздникии множество мероприятий. Вступить в совет
-                            лицеистов может каждый, но нужно быть одним из лучших учеников нашей школы.
+                        <div class="information-block__information-text information-text">Одни из самых важных
+                            участников нашего лицея. Это наши главные организаторы праздников и кружков, а также просто
+                            трудолюбивые и умные ученики. Благодаря им у нас отличные праздники и множество мероприятий.
+                            Вступить в совет лицеистов может каждый, но нужно быть одним из лучших учеников нашей школы.
                         </div>
                     </div>
                     <div class="information-blocks__information-block information-block">
                         <h2 class="information-block__title-information title-information">О кружках</h2>
-                        <div class="information-block__information-text information-text">В нашей школе множество
-                            кружков, а также различных секций. Во многие вы можете вступить. Есть множество спортивных и
-                            художественных кружков в которых вы научитесь различным навыкам
+                        <div class="information-block__information-text information-text">В нашей школе есть множество
+                            кружков и различных секций, в которые вы можете вступить. Здесь представлены как спортивные,
+                            так и художественные кружки, где вы сможете освоить различные навыки.
                         </div>
                     </div>
                     <div class="information-blocks__information-block information-block">
                         <h2 class="information-block__title-information title-information">О нашем проекте</h2>
                         <div class="information-block__information-text information-text">Наш проект специализируется на
-                            помощи новеньким в лицее, но у нас есть функции которые помогут и людям уже освоившимся в
-                            лицее. Например карта которая поможет новичкам разобраться в лицейской местности. А также
-                            удобное расписание, которое поможет ученикам. Есть раздел с домашней работой которую
-                            выставляют старосты класса. Дабы ученикам было проще мы постараемся сделать наш сайт самым
-                            удобным
+                            помощи новичкам в лицее, но у нас также есть функции, которые помогут и людям, уже
+                            освоившимся в лицее. Например, у нас есть карта, которая поможет новичкам разобраться в
+                            лицейской местности, а также удобное расписание для учеников. Мы также предоставляем раздел
+                            с домашними заданиями, которые выставляют ученики и старосты. Для удобства учеников мы
+                            постараемся сделать наш сайт самым удобным.
                         </div>
                     </div>
 
@@ -80,7 +76,13 @@
             </div>
         </div>
     </main>
-    <footer class="footer"></footer>
+    <footer class="footer">
+        <% if (header === 'user') { %>
+            <%- include partials/footer-login.ejs %>
+        <% } else if (header === 'header'){ %>
+            <%- include partials/footer.ejs %>
+        <% } %>
+    </footer>
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="js/script.js"></script>
