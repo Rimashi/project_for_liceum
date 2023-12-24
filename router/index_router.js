@@ -5,92 +5,246 @@ const urlencodedParser = require('express').urlencoded({extended: false});
 const {body} = require('express-validator');
 const authMiddleware = require('../middlewares/auth-middleware');
 const redirectMid = require('../middlewares/redirect-middleware');
-//----------------------------------------------------------------------------------------------------------------------
+const multer = require("multer");
+const path = require("path");
+const grid = require('gridfs-stream');
+const apiError = require("../dtos/api-error");
 
-router.get('/registration', urlencodedParser, userController.registration);
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './files_from_users');
+    },
+    filename: function (req, file, cb) {
+        let name = file.originalname.split(".")[0].replaceAll(";", "_");
+        let newName = '';
+        if (name.length > 20) {
+            for (let i = 0; i < 20; i++) {
+                newName += name[i];
+            }
+            newName += path.extname(file.originalname);
+        } else {
+            newName = file.originalname;
+        }
+        cb(null, newName);
+    }
+})
+const fileFilter = (req, file, cb) => {
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf', '.py', '.js', '.php', '.mp4', '.docx', '.doc', '.xls', '.xlsx', '.csv', '.zip', '.rar', '.svg', '.css', '.html', '.htm', '.pptx', '.sql', '.txt', '.mp3', '.mov', '.wav'];
+    const extname = path.extname(file.originalname).toLowerCase();
+    if (!allowedExtensions.includes(extname)) {
+        throw apiError.BadRequest("наш сервер не поддерживает расширение вашего файла :/");//не работает должным образом
+        // return cb(new Error('Invalid file extension'), false);
+    }
 
-//index-----------------------------------------------------------------------------------------------------------------
+    // Проверка размера файла (20MB максимум)
+    const maxSize = 20 * 1024 * 1024; // 20MB
+    if (file.size > maxSize) {
+        throw apiError.BadRequest("размер вашего файла больше лимита (20 мб)");
+        //return cb(new Error('File size exceeds the limit (20MB)'), false);
+    }
 
+    cb(null, true);
+};
+
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter
+});
+//===================================================ROUTS==============================================================
+
+//===============================================REGISTRATION===========================================================
+router.post('/registration', urlencodedParser, userController.registration);
+
+//================================================INDEX PAGE============================================================
+
+//--------------------------------------------------LOADING-------------------------------------------------------------
 router.get('/', redirectMid, userController.indexPage);
 
-router.post('/', urlencodedParser, userController.login);
+router.post('/login', urlencodedParser, userController.login);
 
-//info------------------------------------------------------------------------------------------------------------------
+//===============================================INFO PAGE==============================================================
 
-
+//--------------------------------------------------LOADING-------------------------------------------------------------
 router.get('/info', userController.infoPage);
 
-router.post('/info', urlencodedParser, userController.login);
+//================================================RATING PAGE===========================================================
 
-//timetable-------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------LOADING-------------------------------------------------------------
+router.get('/rating', authMiddleware, userController.getRating);
 
+//---------------------------------------------GET USER RATING----------------------------------------------------------
+router.post('/rating/change', urlencodedParser, authMiddleware, userController.getRating);
+
+//---------------------------------------------GET CLASS RATING---------------------------------------------------------
+router.post('/rating/change/class', urlencodedParser, authMiddleware, userController.getClassesRating);
+
+//==============================================TIMETABLE PAGE==========================================================
+
+//--------------------------------------------------LOADING-------------------------------------------------------------
 router.get('/schedule', userController.timetable);
 
-router.post('/schedule', urlencodedParser, userController.login);
+router.post('/schedule', urlencodedParser, userController.login);//------------------------------------------------
 
+//------------------------------------------GET TIMETABLE FOR CLASS/ALL-------------------------------------------------
 router.get('/schedule/get', userController.get_timetable);
 
+//-------------------------------------------REGISTRATE NEW TIMETABLE---------------------------------------------------
 router.get('/schedule/reg', userController.timetable_reg);
 
+//=====================================================MAP==============================================================
 
-//map-------------------------------------------------------------------------------------------------------------------
-
+//--------------------------------------------------LOADING-------------------------------------------------------------
 router.get('/map', userController.map);
 
-//subjects--------------------------------------------------------------------------------------------------------------
+//=====================================================MAP==============================================================
 
+//--------------------------------------------------LOADING-------------------------------------------------------------
+router.get('/help', userController.helpPage);
+
+//=================================================SUBJECT PAGE=========================================================
+
+//--------------------------------------------------LOADING-------------------------------------------------------------
 router.get('/subject', authMiddleware, userController.subjects);
 
-//mains-----------------------------------------------------------------------------------------------------------------
+router.get('/subject/get', authMiddleware, userController.getAllForSubjectPage);
 
-//student-----------------------------------------
+//===================================================USERS==============================================================
 
+//===============================================STUDENT PAGE===========================================================
+
+//--------------------------------------------------LOADING-------------------------------------------------------------
 router.get('/student', authMiddleware, userController.studentPage);
 
-router.post('/student', urlencodedParser, authMiddleware, userController.studentPagePost);
+//----------------------------------------------HOMEWORK MODAL----------------------------------------------------------
+router.get('/homework/subject', urlencodedParser, authMiddleware, userController.studentModal);
 
-router.get('/student/modal', urlencodedParser, authMiddleware, userController.studentModal);
+//--------------------------------------------GET DATE BY SUBJECT-------------------------------------------------------
+router.get('/homework/date', urlencodedParser, authMiddleware, userController.studentModalDate);
 
-router.get('/student/modal/date', urlencodedParser, authMiddleware, userController.studentModalDate);
+//------------------------------------------------SEND HOMETASK---------------------------------------------------------
+router.post('/homework/send', urlencodedParser, upload.array('files', 3), authMiddleware, userController.HometaskSend);
 
-//leader------------------------------------------
+//===============================================LEADER PAGE============================================================
 
+//--------------------------------------------------LOADING-------------------------------------------------------------
 router.get('/leader', authMiddleware, userController.leaderPage);
 
-router.post('/leader', urlencodedParser, authMiddleware, userController.leaderPagePost);
+//------------------------------------CHANGE LOGIN AND PASSWORD FOR ALL(without admin)----------------------------------
+router.post('/login/change', urlencodedParser, authMiddleware, userController.changeLogPass);
 
-router.get('/leader/checkmodal', urlencodedParser, authMiddleware, userController.leaderCheck);
+//=================================================EVENTS===============================================================
 
-router.get('/leader/modal/add', urlencodedParser, authMiddleware, userController.leaderModalAdd);
+//-----------------------------------------------EVENT MODAL------------------------------------------------------------
+router.post('/event', urlencodedParser, authMiddleware, userController.event);
 
-router.get('/leader/modal/del', urlencodedParser, authMiddleware, userController.leaderModalDel);
+//===============================================NOTIFICATION===========================================================
 
-router.get('/leader/modal/ban', urlencodedParser, authMiddleware, userController.leaderModalBan);
+//-----------------------------------------------NOTIFICATION-----------------------------------------------------------
+router.post('/notification', urlencodedParser, authMiddleware, userController.leaderNotify);
 
-//admin-------------------------------------------
+//=========================================HOMETASK CHECK MODAL=========================================================
 
+//------------------------------------GET NOT CHECKED HOMETASKS FOR CLASS-----------------------------------------------
+router.get('/checkmodal', urlencodedParser, authMiddleware, userController.leaderCheck);
+
+//-------------------------------------------ADD HOMETASK(check)--------------------------------------------------------
+router.post('/checkmodal/add', urlencodedParser, authMiddleware, userController.leaderModalAdd);
+
+//---------------------------------------------DELETE HOMETASK----------------------------------------------------------
+router.post('/checkmodal/del', urlencodedParser, authMiddleware, userController.leaderModalDel);
+
+//-----------------------------------DELETE HOMETASK AND BAN USER FOR A WEEK--------------------------------------------
+router.post('/checkmodal/ban', urlencodedParser, authMiddleware, userController.leaderModalBan);
+
+//================================================ADMIN PAGE============================================================
+
+//--------------------------------------------------LOADING-------------------------------------------------------------
 router.get('/admin', authMiddleware, userController.adminPage);
 
-router.post('/admin', urlencodedParser, authMiddleware, userController.adminPagePost);
+//================================================USERS PART============================================================
 
-router.get('/admin/eventModal', urlencodedParser, authMiddleware, userController.adminEventGet);
+//------------------------------------------------FIND USER-------------------------------------------------------------
+router.post('/admin/users/find', urlencodedParser, authMiddleware, userController.adminPageUsersFind);
 
-//router.get('/admin/checkModal', urlencodedParser, authMiddleware, userController.adminCheck);
+//-----------------------------------------GET LIST OF CLASSES----------------------------------------------------------
+router.get('/admin/users/class', urlencodedParser, authMiddleware, userController.adminUsersClass);
 
-//router.get('/admin/modal/add', urlencodedParser, authMiddleware, userController.adminModalAdd);
+//----------------------------------------GET LIST OF USERS BY CLASS----------------------------------------------------
+router.post('/admin/users/list', urlencodedParser, authMiddleware, userController.adminUsersList);
 
-router.get('/admin/modal/del', urlencodedParser, authMiddleware, userController.adminEventsDel);
+//----------------------------------------------RESET PASSWORD----------------------------------------------------------
+router.post('/admin/user/password', urlencodedParser, authMiddleware, userController.adminUserPassword);
 
-router.get('/admin/modal/ban', urlencodedParser, authMiddleware, userController.adminEventsBan);
+//-----------------------------------------------DELETE USER------------------------------------------------------------
+router.post('/admin/user/delete', urlencodedParser, authMiddleware, userController.adminUserDelete);
 
-//tokens----------------------------------------------------------------------------------------------------------------
+//-------------------------------------------CHANGE USER'S STATUS-------------------------------------------------------
+router.post('/admin/user/status', urlencodedParser, authMiddleware, userController.adminUserStatus);
 
+//---------------------------------------------GENERATE PASSWORD--------------------------------------------------------
+router.get('/admin/addmodal/getpass', urlencodedParser, authMiddleware, userController.adminGeneratePass);
+
+//==============================================ADMIN EVENTS============================================================
+
+//-----------------------------------------------GET ALL EVENTS---------------------------------------------------------
+router.get('/admin/events/get', urlencodedParser, authMiddleware, userController.adminEventsGet);
+
+//------------------------------------------------DELETE EVENT----------------------------------------------------------
+router.post('/admin/events/del', urlencodedParser, authMiddleware, userController.adminEventsDel);
+
+//--------------------------------------------------ADD EVENT-----------------------------------------------------------
+router.post('/admin/events/add', urlencodedParser, authMiddleware, userController.adminEventAdd);
+
+//==========================================ADMIN NOTIFICATIONS=========================================================
+
+//--------------------------------------------GET NOTIFICATIONS---------------------------------------------------------
+router.post('/admin/notice/get', urlencodedParser, authMiddleware, userController.adminNoticeGet);
+
+//-------------------------------------------DELETE NOTIFICATION--------------------------------------------------------
+router.post('/admin/notice/del', urlencodedParser, authMiddleware, userController.adminNoticeDel);
+
+//----------------------------------------------ADD NOTIFICATION--------------------------------------------------------
+router.post('/admin/notice/add', urlencodedParser, authMiddleware, userController.adminNoticeAdd);
+
+//==============================================ADMIN TEACHER===========================================================
+
+//---------------------------------------------ADD NEW TEACHER----------------------------------------------------------
+router.post('/admin/teacher/add', urlencodedParser, userController.adminAddTeacher);//authmiddleware добавь
+
+//============================================ADMIN TIMETABLE===========================================================
+
+//-----------------------------------------------GET TIMETABLE----------------------------------------------------------
+router.post('/admin/timetable/get', urlencodedParser, authMiddleware, userController.adminGetTimetable);
+
+//------------------------------------------------ADD SUBJECT-----------------------------------------------------------
+router.post('/admin/timetable/addSubject', urlencodedParser, authMiddleware, userController.adminAddSubject);
+
+//-----------------------------------------------GET SUBJECTS-----------------------------------------------------------
+router.get('/admin/timetable/getSubject', urlencodedParser, authMiddleware, userController.adminGetSubject);
+
+//-----------------------------------------------DELETE SUBJECT---------------------------------------------------------
+router.post('/admin/timetable/modal/del', urlencodedParser, authMiddleware, userController.adminModalDel);
+
+//----------------------------------------------CHANGE TIMETABLE--------------------------------------------------------
+router.post('/admin/timetable/change', urlencodedParser, authMiddleware, userController.adminTimetableChange);
+
+//------------------------------------------------ADD NEW CLASS---------------------------------------------------------
+router.post('/admin/timetable/addClass', urlencodedParser, authMiddleware, userController.adminTimetableAddClass);
+
+//-------------------------------------------------DELETE CLASS---------------------------------------------------------
+router.post('/admin/timetable/delClass', urlencodedParser, authMiddleware, userController.adminTimetableDelClass);
+
+//===============================================REFRESH ROUT===========================================================
 router.get('/refresh', userController.refresh);
 
-//logout----------------------------------------------------------------------------------------------------------------
-
+//===============================================LOGOUT ROUT============================================================
 router.get('/logout', userController.logout);
 
+//================================================ERROR ROUT============================================================
+router.get('/error', userController.error);
+
+//==============================================DOWNLOAD ROUT===========================================================
+router.get('/download/:filename', authMiddleware, urlencodedParser, userController.downloadFile);
 //router.get('/clear', authMiddleware, userController.clearDB);
 
 module.exports = router;
