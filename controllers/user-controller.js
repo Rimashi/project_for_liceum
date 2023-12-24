@@ -1,17 +1,61 @@
 const userService = require('../service/user-service');
 const {validationResult, body} = require('express-validator');
 const path = require("path");
-const {json} = require("express");
 const tokenService = require('../service/token-service');
-const {plugin} = require("mongoose");
+const UserModel = require("../models/user-model");
+const apiError = require("../dtos/api-error");
+const fs = require('fs');
+
 const createPath = (page) => path.resolve(__dirname, '../views', `${page}.ejs`);
 
+
+//==============================================FUNCTIONS===============================================================
+
+//TO MAKE FIRST LETTER UP-----------------------------------------------------------------------------------------------
 function ucfirst(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+// FOR LOADING STUDENT OR LEADER PAGE-----------------------------------------------------------------------------------
+async function page(req, res, next) {
+    try {
+        const {refreshToken} = req.cookies;
 
+        const user = await userService.user(refreshToken);
+
+        const notify = await userService.getNotification(user.class);
+
+        const homework = await userService.getHomework(refreshToken);
+
+        let events = await userService.getEvents();
+
+        let isChangePassword = await userService.isChangePass(refreshToken);
+
+        if (!homework)
+            return res.render(createPath(`main-${user.status}`), {
+                surname: ucfirst(user.surname) + " " + user.class.split("_")[0] + user.class.split("_")[1],
+                homework: "none",
+                notification: notify,
+                events: events,
+                isChange: isChangePassword
+            });
+
+        return res.render(createPath(`main-${user.status}`), {
+            surname: ucfirst(user.surname) + " " + user.class.split("_")[0] + user.class.split("_")[1],
+            homework: homework,
+            notification: notify,
+            events: events,
+            isChange: isChangePassword
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
+//==============================================CLASS CONTROLLER========================================================
 class UserController {
+
+//==============================================REGISTRATION============================================================
     async registration(req, res, next) {
         try {
             const errors = validationResult(req);
@@ -19,29 +63,46 @@ class UserController {
                 return res.render(createPath(''));
             }
 
-            const {name, surname, login, pass, class_, status} = req.body;
-            console.log(name, surname, login, pass, class_, status);
-            const userData = await userService.registration(name, surname, login, pass, class_, status);
-            res.cookie('refreshToken', userData.refreshToken, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true});
+            const {name, surname, class_, pass, status} = req.body;
+            console.log(name, surname, pass, class_, status);
+            const userData = await userService.registration(name, surname, class_, pass, status);
+            // res.cookie('refreshToken', userData.refreshToken, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true});
             return res.json(userData);
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//login-----------------------------------------------------------------------------------------------------------------
+//=======================================CHANGE LOGIN AND PASSWORD======================================================
+    async changeLogPass(req, res, next) {
+        try {
+            const {refreshToken} = req.cookies;
+            let data = req.body;
+            console.log(data);
+            if (refreshToken) {
+                const user = await userService.user(refreshToken);
+                let updateUser = await userService.changeLogPass(data['login'], data['pass'], user);
+            }
+            return res.redirect('/');
 
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//=================================================LOGIN================================================================
     async login(req, res, next) {
         try {
             const {login, pass} = req.body;
+            console.log(login, pass);
+            let user_login = login || '';
+            const userData = await userService.login(user_login.trim().toLowerCase(), pass);
 
-            const userData = await userService.login(login.trim().toLowerCase(), pass);
-            //console.log(userData);
             switch (userData) {
                 case "userNone":
-                    return res.redirect("/");
+                    return res.json({error: userData});
                 case "passwordNone":
-                    return res.redirect("/");
+                    return res.json({error: userData});
             }
             //console.log(userData.user.status);
             res.cookie('accessToken', userData.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true, secure: true});
@@ -50,26 +111,13 @@ class UserController {
                 httpOnly: true,
                 secure: true
             });
-
-            switch (userData.data[0]) {
-                case "student":
-                    const str = userData.data[1] + " " + userData.data[2];
-                    return res.redirect("/student");
-                case "leader":
-                    return res.redirect("/leader");
-                case "admin":
-                    return res.redirect("/admin");
-                default:
-                    console.log("status is not defind");
-                    return res.redirect('/');
-            }
+            return res.json({success: userData.data[0]});
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//logout----------------------------------------------------------------------------------------------------------------
-
+//=================================================LOGOUT===============================================================
     async logout(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
@@ -79,17 +127,19 @@ class UserController {
             res.clearCookie('accessToken');
             return res.redirect('/');
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//info------------------------------------------------------------------------------------------------------------------
+//=================================================PAGES================================================================
 
+
+//===================================================INFO===============================================================
     async infoPage(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
             if (refreshToken) {
-                const surname = await userService.student(refreshToken);
+                const surname = await userService.user(refreshToken);
                 return res.render(createPath("info"), {
                     surname: ucfirst(surname.surname) + " " + surname.class.split("_")[0] + surname.class.split("_")[1],
                     header: "user"
@@ -99,38 +149,101 @@ class UserController {
                 header: "header"
             });
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//subjects--------------------------------------------------------------------------------------------------------------
+//======================================================SUBJECT=========================================================
 
+//-------------------------------------------------SUBJECT PAGE---------------------------------------------------------
     async subjects(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
             if (refreshToken) {
-                const surname = await userService.student(refreshToken);
-                //console.log(subjectsDict[surname.class], ' ---subjects from dict');
-                let subjects = await userService.getSubjects(surname.class);
+                const surname = await userService.user(refreshToken);
                 return res.render(createPath("subject"), {
                     surname: ucfirst(surname.surname) + " " + surname.class.split("_")[0] + surname.class.split("_")[1],
                     header: "user",
-                    subjects_: subjects
                 });
             }
             return res.redirect('/');
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//TIMETABLE-------------------------------------------------------------------------------------------------------------
-//main----------------------------------------------------------------------
+//-----------------------------GET SUBJECTS, HOMETASKS, TEACHERS AND CLASSROOMS-----------------------------------------
+    async getAllForSubjectPage(req, res, next) {
+        try {
+            const {refreshToken} = req.cookies;
+            if (refreshToken) {
+                const surname = await userService.user(refreshToken);
+                let subjects = await userService.getSubjects(surname.class);
+                let hometasks = await userService.getHometaskForWeek(surname.class, subjects);
+                let teachers = await userService.getTeachers(refreshToken);
+                return res.json({subjects: subjects, hometasks: hometasks, teachers: teachers});
+            }
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//===================================================RATING=============================================================
+
+    async getRating(req, res, next) {
+        try {
+            const {refreshToken} = req.cookies;
+            let val = req.body['val'];
+
+            let get = await userService.getClassRate(refreshToken);
+
+            if (tokenService.validateRefreshToken(refreshToken)) {
+                const userData = tokenService.validateRefreshToken(refreshToken);
+                const user = await UserModel.findById(userData.id);
+
+                if (val === undefined || val === null || val === "") {
+                    let userRating = await userService.userRating("none", refreshToken);
+                    let rating = await userService.getTopFiveOfRating("none", user['class']);
+                    return res.render(createPath('rating'), {
+                        header: "user",
+                        surname: ucfirst(user['surname']) + " " + user['class'].split("_")[0] + user['class'].split("_")[1],
+                        rating: rating,
+                        userRating: userRating,
+                        parallel: get,
+                        class_: userRating[1]
+                    });
+                } else {
+                    let userRating = await userService.userRating(val, refreshToken);
+                    let rating = await userService.getTopFiveOfRating(val, user['class']);
+                    return res.json({
+                        rating: rating,
+                        userRating: userRating
+                    });
+                }
+            }
+            return res.redirect('/');
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async getClassesRating(req, res, next) {
+        try {
+            let class_ = req.body['class_'];
+            let get = await userService.getClassRate(class_);
+            return res.json({data: get});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//=================================================TIMETABLE============================================================
+//PAGE------------------------------------------------------------------------------------------------------------------
     async timetable(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
             if (refreshToken) {
-                const surname = await userService.student(refreshToken);
+                const surname = await userService.user(refreshToken);
                 return res.render(createPath("schedule"), {
                     surname: ucfirst(surname.surname) + " " + surname.class.split("_")[0] + surname.class.split("_")[1],
                     header: "user"
@@ -140,59 +253,79 @@ class UserController {
                 header: "header"
             });
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//registration--------------------------------------------------------------
+//TIMETABLE REGISTRATION------------------------------------------------------------------------------------------------
     async timetable_reg(req, res, next) {
         try {
             const {class_, monday, tuesday, wednesday, thursday, friday, saturday} = req.body;
-            console.log(class_, monday, tuesday, wednesday, thursday, friday, saturday);
             const userData = await userService.timetable_r(class_, monday, tuesday, wednesday, thursday, friday, saturday);
             return res.json(userData);
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//get_timetable-------------------------------------------------------------
+//TIMETABLE GETTER------------------------------------------------------------------------------------------------------
     async get_timetable(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
-            //console.log(refreshToken);
+
             if (refreshToken) {
-                const user = await userService.student(refreshToken);
+                const user = await userService.user(refreshToken);
                 const parallel = user.class.split("_")[0];
                 const usersData = await userService.getTimetable(parallel, user.class);
-                //console.log(usersData);
+
                 return res.json(usersData);
             }
             const usersData = await userService.getAllTimetable();
-            //console.log(usersData);
+
             return res.json(usersData);
         } catch (e) {
-            console.log(e);
+            next(e);
         }
     }
 
-
-//map-------------------------------------------------------------------------------------------------------------------
-
+//=====================================================MAP==============================================================
     async map(req, res, next) {
         try {
-            const {login, pass} = req.body;
-            const userData = await userService.login(login, pass);
-            //res.cookie('refreshToken', userData.refreshToken, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true});
-            return res.json(userData);
-
+            const {refreshToken} = req.cookies;
+            if (refreshToken) {
+                const surname = await userService.user(refreshToken);
+                return res.render(createPath("map"), {
+                    surname: ucfirst(surname.surname) + " " + surname.class.split("_")[0] + surname.class.split("_")[1],
+                    header: "user"
+                });
+            }
+            return res.render(createPath("map"), {
+                header: "header"
+            });
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//index-----------------------------------------------------------------------------------------------------------------
-
+//=====================================================HELP==============================================================
+    async helpPage(req, res, next) {
+        try {
+            const {refreshToken} = req.cookies;
+            if (refreshToken) {
+                const surname = await userService.user(refreshToken);
+                return res.render(createPath("help"), {
+                    surname: ucfirst(surname.surname) + " " + surname.class.split("_")[0] + surname.class.split("_")[1],
+                    header: "user"
+                });
+            }
+            return res.render(createPath("help"), {
+                header: "header"
+            });
+        } catch (e) {
+            next(e);
+        }
+    }
+//=================================================INDEX================================================================
     async indexPage(req, res, next) {
         try {
             let events = await userService.getEvents();
@@ -200,478 +333,550 @@ class UserController {
                 events: events
             });
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//student---------------------------------------------------------------------------------------------------------------
-//main----------------------------------------------------------------------
+//==================================================ERROR===============================================================
+    async error(req, res, next) {
+        try {
+            let data = req.query;
+            console.log(data, data.message, data.status);
+            return res.render(createPath('error'), {
+                status: data.status,
+                message: data.message
+            });
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//=================================================STUDENT==============================================================
+//---------------------------------------------------PAGE---------------------------------------------------------------
     async studentPage(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
-            const surname = await userService.student(refreshToken);
-            const notify = await userService.getNotification(surname.class);
-            if (surname.status !== "student")
+            const user = await userService.user(refreshToken);
+            if (user !== "changed status") {
+                if (refreshToken) {
+                    const notify = await userService.getNotification(user.class);
+                    if (user.status !== "student")
+                        return res.redirect(createPath('index'));
+
+                    await page(req, res, next);
+                }
+            } else {
+                res.clearCookie('refreshToken');
+                res.clearCookie('accessToken');
                 return res.redirect('/');
-            const homework = await userService.getHomework(refreshToken);
-            let events = await userService.getEvents();
-            //console.log(homework, ' - homework');
-            if (!homework)
-                return res.render(createPath("main-student"), {
-                    surname: ucfirst(surname.surname) + " " + surname.class.split("_")[0] + surname.class.split("_")[1],
-                    homework: "none",
-                    notification: notify,
-                    events: events
-                });
-            //console.log(surname, " - surname");//верни
-            const isDone = await userService.clearHomework();
-            //console.log(isDone);
-            return res.render(createPath("main-student"), {
-                surname: ucfirst(surname.surname) + " " + surname.class.split("_")[0] + surname.class.split("_")[1],
-                homework: homework,
-                notification: notify,
-                events: events
-            });
+            }
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//add_hometask--------------------------------------------------------------
+//---------------------------------------------ADD HOMETASK MODAL-------------------------------------------------------
+
+//GET SUBJECTS----------------------------------------------------------------------------------------------------------
     async studentModal(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
-            const surname = await userService.student(refreshToken);
-            const {subject} = req.body;
-            //console.log(surname.class);
+            const surname = await userService.user(refreshToken);
             let subjects = await userService.getSubjects(surname.class);
             return res.json({subjects: subjects});
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//for_dates_in_hometask_modal-----------------------------------------------
+//GET SUBJECTS DATE-----------------------------------------------------------------------------------------------------
     async studentModalDate(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
-            const surname = await userService.student(refreshToken);
-            const {subject} = req.query;
-            //console.log(subject);
+            const surname = await userService.user(refreshToken);
+            const data = req.query;// почему здесь работает query, но не работает body
+            let subject = data['subject'];
+            //console.log(data, subject);
             let date = await userService.getDate(refreshToken, subject);
             return res.json({dates: date});
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//to_send_homework---------------------------------------------------------
-    async studentPagePost(req, res, next) {
+//ADD HOMEWORK FUNCTION-------------------------------------------------------------------------------------------------
+    async HometaskSend(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
-            const {homework_text, subject, date} = req.body;
-            const body_date = await userService.getDate(refreshToken, subject);
-            //console.log("post", homework_text, subject, date);
-            //console.log(body_date, " try to date this");
-            const homework = await userService.getHomework(refreshToken);
-            const surname = await userService.writeHomework(refreshToken, homework_text, subject, date);
-            console.log(surname);
-            const notify = await userService.getNotification(surname.user.class);
-            let events = await userService.getEvents();
-            let subjects = await userService.getSubjects(surname.user.class);
-            switch (surname.problems) {
-                case "noneDate":
-                    console.log("date was not selected");
-                    return res.render(createPath("main-student"), {
-                        surname: ucfirst(surname.user.surname) + " " + surname.user.class.split("_")[0] + surname.user.class.split("_")[1],
-                        subjects: subjects,
-                        homework: homework,
-                        problems: "date was not selected",
-                        notification: notify,
-                        events: events
-                    });
+            let hometask = req.body.text;
+            let date = req.body.date;
+            let subject = req.body.subject;
+            let file = req.files;
+
+            const write = await userService.writeHomework(refreshToken, hometask, subject, date, file);
+            switch (write.problems) {
                 case "noneHomework":
-                    console.log("Homework was not write");
-                    return res.render(createPath("main-student"), {
-                        surname: ucfirst(surname.user.surname) + " " + surname.user.class.split("_")[0] + surname.user.class.split("_")[1],
-                        subjects: subjects,
-                        homework: homework,
-                        problems: "Homework was not write",
-                        notification: notify,
-                        events: events
-                    });
+                    return res.json({error: "no homework"});
                 case "noneSubject":
-                    console.log("subject was not selected");
-                    return res.render(createPath("main-student"), {
-                        surname: ucfirst(surname.user.surname) + " " + surname.user.class.split("_")[0] + surname.user.class.split("_")[1],
-                        subjects: subjects,
-                        homework: homework,
-                        problems: "subject was not selected",
-                        notification: notify,
-                        events: events
-                    });
+                    return res.json({error: "no subject"});
+                case "noneDate":
+                    return res.json({error: "no date"});
+                case "person has written":
+                    return res.json({error: "person has written"});
                 case "none":
-                    return res.render(createPath("main-student"), {
-                        surname: ucfirst(surname.user.surname) + " " + surname.user.class.split("_")[0] + surname.user.class.split("_")[1],
-                        subjects: subjects,
-                        homework: homework,
-                        problems: "none",
-                        notification: notify,
-                        events: events
-                    });
+                    return res.json({success: "success"});
                 default:
-                    console.log("smth wrong with homework");
-                    return res.render(createPath("main-student"), {
-                        surname: ucfirst(surname.user.surname) + " " + surname.user.class.split("_")[0] + surname.user.class.split("_")[1],
-                        subjects: subjects,
-                        homework: homework,
-                        problems: "unknown",
-                        notification: notify,
-                        events: events
-                    });
+                    return res.json({error: "Something went wrong with homework"});
             }
         } catch (e) {
-            return next(e);
+            next(e);
+        }
+    }
+
+//===========================================DOWNLOADING FILE===========================================================
+
+    async downloadFile(req, res, next) {
+        try {
+            const filenames = req.params.filename.split(':').map(decodeURIComponent);
+            const filesDir = './files_from_users';
+
+            res.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(filenames.join(':'))}`);
+            res.setHeader('Content-Type', 'application/octet-stream');
+
+            for (const filename of filenames) {
+                const filePath = path.join(filesDir, filename);
+                const fileStream = fs.createReadStream(filePath);
+
+                await new Promise((resolve, reject) => {
+                    fileStream.on('end', resolve);
+                    fileStream.on('error', reject);
+                    fileStream.pipe(res, {end: false});
+                });
+            }
+
+            res.end();
+        } catch (e) {
+            console.error(e);
+            next(apiError.MaybeServerProblem('Произошла ошибка при скачивании файлов'));
         }
     }
 
 
-//leader----------------------------------------------------------------------------------------------------------------
-//main----------------------------------------------------------------------
+//=================================================LEADER===============================================================
+
+//--------------------------------------------------PAGE----------------------------------------------------------------
     async leaderPage(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
-            const user = await userService.leader(refreshToken);
+            const user = await userService.user(refreshToken);
+            if (user !== "changed status") {
+                if (refreshToken) {
+                    const notify = await userService.getNotification(user.class);
 
-            const notify = await userService.getNotification(user.class);
-            const isDone = await userService.clearHomework();
+                    if (user.status !== "leader")
+                        return res.redirect(createPath('index'));
 
-            if (user.status !== "leader")
-                return res.redirect(createPath('index'));
-
-            const homework = await userService.getHomework(refreshToken);
-
-            let events = await userService.getEvents();
-
-            if (!homework)
-                return res.render(createPath("main-leader"), {
-                    surname: ucfirst(user.surname) + " " + user.class.split("_")[0] + user.class.split("_")[1],
-                    homework: "none",
-                    notification: notify,
-                    events: events
-                });
-
-            return res.render(createPath("main-leader"), {
-                surname: ucfirst(user.surname) + " " + user.class.split("_")[0] + user.class.split("_")[1],
-                homework: homework,
-                notification: notify,
-                events: events
-            });
-        } catch (e) {
-            return next(e);
-        }
-    }
-
-//for leader modals---------------------------------------------------------
-    async leaderPagePost(req, res, next) {
-        try {
-            const {refreshToken} = req.cookies;
-            let {homework_text, subject, date, text, location} = req.body;
-            let {notification} = req.body;
-            let surname;
-
-            if (notification) {
-                let eventAdd = await userService.leaderNotification(refreshToken, notification);
-                surname = await userService.leader(refreshToken);
-                if (eventAdd) {
-                    console.log("was add notification");
-                    return res.redirect('/');
-                } else {
-                    surname = await userService.leader(refreshToken);
-                    return res.redirect('/');
+                    await page(req, res, next);
                 }
             } else {
-                if (location && date && text) {
-                    let eventAdd = await userService.leaderEvents(refreshToken, location, date, text);
-                    if (eventAdd) {
-                        console.log("was add event");
-                        return res.redirect('/');
-                    } else {
-                        return res.redirect('/');
-                    }
-                } else {
-                    surname = await userService.writeHomework(refreshToken, homework_text, subject, date);
-                    const notify = await userService.getNotification(surname.user.class);
-                    let events = await userService.getEvents();
-                    let subjects = await userService.getSubjects(surname.user.class);
-                    let homework = await userService.getHomework(refreshToken);
-                    switch (surname.problems) {
-                        case "noneDate":
-                            console.log("date was not selected");
-                            return res.render(createPath("main-leader"), {
-                                surname: ucfirst(surname.user.surname) + " " + surname.user.class.split("_")[0] + surname.user.class.split("_")[1],
-                                subjects: subjects,
-                                homework: homework,
-                                problems: "date was not selected",
-                                notification: notify,
-                                events: events
-                            });
-                        case "noneHomework":
-                            console.log("Homework was not write");
-                            return res.render(createPath("main-leader"), {
-                                surname: ucfirst(surname.user.surname) + " " + surname.user.class.split("_")[0] + surname.user.class.split("_")[1],
-                                subjects: subjects,
-                                homework: homework,
-                                problems: "Homework was not write",
-                                notification: notify,
-                                events: events
-                            });
-                        case "noneSubject":
-                            console.log("subject was not selected");
-                            return res.render(createPath("main-leader"), {
-                                surname: ucfirst(surname.user.surname) + " " + surname.user.class.split("_")[0] + surname.user.class.split("_")[1],
-                                subjects: subjects,
-                                homework: homework,
-                                problems: "subject was not selected",
-                                notification: notify,
-                                events: events
-                            });
-                        case "none":
-                            return res.render(createPath("main-leader"), {
-                                surname: ucfirst(surname.user.surname) + " " + surname.user.class.split("_")[0] + surname.user.class.split("_")[1],
-                                subjects: subjects,
-                                homework: homework,
-                                problems: "none",
-                                notification: notify,
-                                events: events
-                            });
-                        default:
-                            console.log("smth wrong with homework");
-                            return res.render(createPath("main-leader"), {
-                                surname: ucfirst(surname.user.surname) + " " + surname.user.class.split("_")[0] + surname.user.class.split("_")[1],
-                                subjects: subjects,
-                                homework: homework,
-                                problems: "unknown",
-                                notification: notify,
-                                events: events
-                            });
-                    }
-                }
+                res.clearCookie('refreshToken');
+                res.clearCookie('accessToken');
+                return res.redirect('/');
             }
-
-
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//rout for hometask check modal--------------------------------------------
+//---------------------------------------------------MODALS-------------------------------------------------------------
+
+//NOTIFICATION----------------------------------------------------------------------------------------------------------
+    async leaderNotify(req, res, next) {
+        try {
+            const {refreshToken} = req.cookies;
+            let data = req.body;
+            let notify = await userService.leaderNotification(refreshToken, data['notify']);
+
+            return res.redirect('/');
+
+        } catch (e) {
+            next(e);
+        }
+
+    }
+
+//EVENTS----------------------------------------------------------------------------------------------------------------
+    async event(req, res, next) {
+        try {
+            const {refreshToken} = req.cookies;
+            let data = req.body;
+            let eventAdd = await userService.leaderEvents(refreshToken, data['place'], data['date'], data['text']);
+
+            return res.redirect('/');
+
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//FOR HOMEWORK CHECK MODAL----------------------------------------------------------------------------------------------
+
+//GET HOMEWORK--------------------------------------------------------
     async leaderCheck(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
-            const user = await userService.leader(refreshToken);
+            const user = await userService.user(refreshToken);
             let hometasks = await userService.getCheckHomework(user.class);
             return res.json({hometasks: hometasks});
 
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//for check modal-----------------------------------------------------------
-//add------------------------------------------------
+//ADD HOMETASK--------------------------------------------------------
     async leaderModalAdd(req, res, next) {
         try {
-            let data = req.query;
-            let userData = await userService.leaderHomeworkAdd(data['data']);
+            let data = req.body;
+            let userData = await userService.leaderHomeworkAdd(data);
             return res.redirect('/');
         } catch (e) {
-            console.log(e);
+            next(e);
         }
     }
 
-//delete---------------------------------------------
+//DELETE HOMETASK-----------------------------------------------------
     async leaderModalDel(req, res, next) {
         try {
-            let data = req.query;
-            let userData = await userService.leaderHomeworkDel(data['data']);
+            let data = req.body;
+            let userData = await userService.leaderHomeworkDel(data);
             return res.redirect('/');
         } catch (e) {
-            console.log(e);
+            next(e);
         }
     }
 
-//ban-----------------------------------------------
+//BAN USER AND DELETE HOMETASK-----------------------------------------
     async leaderModalBan(req, res, next) {
         try {
-            let data = req.query;
-            let userData = await userService.leaderHomeworkBan(data['data']);
+            let data = req.body;
+            let userData = await userService.leaderHomeworkBan(data);
             return res.redirect('/');
         } catch (e) {
-            console.log(e);
+            next(e);
         }
     }
 
+//===================================================ADMIN==============================================================
 
-//admin-----------------------------------------------------------------------------------------------------------------
-
+//PAGE------------------------------------------------------------------------------------------------------------------
     async adminPage(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
             const user = await userService.admin(refreshToken);
-            console.log(user);
-            const isDone = await userService.clearHomework();
+
             if (user.status === "admin")
                 return res.render(createPath("main-admin"));
             else return res.redirect("/");
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//Post: Events, Notifications, Hometasks
-    async adminPagePost(req, res, next) {
+//---------------------------------------------------USERS LIST---------------------------------------------------------
+
+//FIND USER BY SURNAME--------------------------------------------------------------------------------------------------
+    async adminPageUsersFind(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
-            //let {homework_text, subject, date, text, location, class_} = req.body;
-            //let {notification, class_} = req.body;
-            let surname;
+            const admin = await userService.admin(refreshToken);
+            let data = req.body;
+            // console.log(data);
+            let user = await userService.adminFindUser(data['surname'].toLowerCase());
+            if (user === "none")
+                return res.json({status: "none"});
 
-            if (notification && class_) {
-                let eventAdd = await userService.adminNotification(refreshToken, notification, class_);
-                surname = await userService.admin(refreshToken);
-                if (eventAdd) {
-                    console.log("was add notification");
-                    return res.redirect('/');
-                } else {
-                    surname = await userService.admin(refreshToken);
-                    return res.redirect('/');
-                }
-            } else {
-                if (location && date && text && class_) {
-                    let eventAdd = await userService.leaderEvents(refreshToken, location, date, text, class_);
-                    if (eventAdd) {
-                        console.log("was add event");
-                        return res.redirect('/');
-                    } else {
-                        return res.redirect('/');
-                    }
-                } else {
-                    surname = await userService.writeHomework(refreshToken, homework_text, subject, date, class_);
-                    let homework = await userService.getHomework(refreshToken);
-                    switch (surname.problems) {
-                        case "noneDate":
-                            console.log("date was not selected");
-                            return res.render(createPath("main-admin"), {
-                                homework: homework,
-                                problems: "date was not selected",
-                            });
-                        case "noneHomework":
-                            console.log("Homework was not write");
-                            return res.render(createPath("main-leader"), {
-                                homework: homework,
-                                problems: "Homework was not write",
-                            });
-                        case "noneSubject":
-                            console.log("subject was not selected");
-                            return res.render(createPath("main-leader"), {
-                                homework: homework,
-                                problems: "subject was not selected",
-                            });
-                        case "none":
-                            return res.render(createPath("main-leader"), {
-                                homework: homework,
-                                problems: "none",
-                            });
-                        default:
-                            console.log("smth wrong with homework");
-                            return res.render(createPath("main-leader"), {
-                                homework: homework,
-                                problems: "unknown",
-                            });
-                    }
-                }
-            }
+            return res.json({
+                surname: user['surname'],
+                name: user['name'],
+                class: user['class'],
+                status: user['status']
+            });
+
+
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//rout for hometask check modal--------------------------------------------
-//get classes---------------------------------------
-    async adminCheckClass(req, res, next) {
+//GET CLASSES-----------------------------------------------------------------------------------------------------------
+    async adminUsersClass(req, res, next) {
         try {
-            const {refreshToken} = req.cookies;
-            const user = await userService.leader(refreshToken);
             let classes = await userService.getClasses();
             return res.json({classes: classes});
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//get subjects---------------------------------------
-    async adminCheckSub(req, res, next) {
+//LIST OF USERS---------------------------------------------------------------------------------------------------------
+    async adminUsersList(req, res, next) {
         try {
-            const {refreshToken} = req.cookies;
-            let {data} = req.query;
-            let subjects = await userService.getSubjects(data['data']['class']);
+            let data = req.body;
+            let users = await userService.adminListOfUsers(data['class']);
+            return res.json({users: users});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//RESET USER PASSWORD---------------------------------------------------------------------------------------------------
+    async adminUserPassword(req, res, next) {
+        try {
+            let data = req.body;
+            let reset = await userService.adminResetPassword(data['surname'], data['name'], data['class']);
+            return res.json({newPass: reset});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//DELETE USER-----------------------------------------------------------------------------------------------------------
+    async adminUserDelete(req, res, next) {
+        try {
+            let data = req.body;
+            let del = await userService.adminUserDelete(data['surname'], data['name'], data['class']);
+            return res.json({result: del});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//CHANGE USER STATUS----------------------------------------------------------------------------------------------------
+    async adminUserStatus(req, res, next) {
+        try {
+            let data = req.body;
+            let status = await userService.adminUserStatus(data['surname'], data['name'], data['class'], data['status']);
+            return res.json({result: status});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//----------------------------------------------ADD USER MODAL----------------------------------------------------------
+
+//GENERATE NEW PASSWORD BUTTON------------------------------------------------------------------------------------------
+    async adminGeneratePass(req, res, next) {
+        try {
+            let pass = await userService.adminGeneratePass();
+            return res.json({pass: pass});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//-----------------------------------------------TEACHERS---------------------------------------------------------------
+
+//-------------------------------------------ADD NEW TEACHER------------------------------------------------------------
+    async adminAddTeacher(req, res, next) {
+        try {
+            let data = req.body;//?
+            let teacher = await userService.adminAddNewTeacher(data['name'], data['surname'], data['lastname'], data['subject'], data['classroom']);
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//------------------------------------------------TIMETABLE-------------------------------------------------------------
+
+//GET TIMETABLE BY CLASS------------------------------------------------------------------------------------------------
+
+    async adminGetTimetable(req, res, next) {
+        try {
+            let data = req.body;
+            let timetable_ = await userService.adminTimetable(data['class_']);
+
+            return res.json({
+                monday: timetable_.get('monday'),
+                tuesday: timetable_.get('tuesday'),
+                wednesday: timetable_.get('wednesday'),
+                thursday: timetable_.get('thursday'),
+                friday: timetable_.get('friday'),
+                saturday: timetable_.get('saturday'),
+            });
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//ADD NEW SUBJECT-------------------------------------------------------------------------------------------------------
+
+    async adminAddSubject(req, res, next) {
+        try {
+            let data = req.body;
+            let add = await userService.adminAddSubject(data['subject']);
+            return res.json({added: add});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//GET SUBJECTS----------------------------------------------------------------------------------------------------------
+
+    async adminGetSubject(req, res, next) {
+        try {
+            let subjects = await userService.adminGetAllSubjects();
             return res.json({subjects: subjects});
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
+//DELETE SUBJECT--------------------------------------------------------------------------------------------------------
 
-//Events---------------------------------------------------------
-//Get--------------------------------
-
-    async adminEventGet(req, res, next) {
+    async adminModalDel(req, res, next) {
         try {
-            let events = await userService.getEvents();
-            return res.json({events: events});
+            let data = req.body;
+            let subject = await userService.adminModalDelSubject(data['subject']);
+            return res.json({subject: subject});
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//Delete event----------------------
+//CHANGE TIMETABLE------------------------------------------------------------------------------------------------------
+
+    async adminTimetableChange(req, res, next) {
+        try {
+            let data = req.body;
+            let update = await userService.adminChangeTimetable(data['class_'], data['weekday'], data['number'], data['subject']);
+            return res.json({update: update});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//ADD NEW CLASS---------------------------------------------------------------------------------------------------------
+
+    async adminTimetableAddClass(req, res, next) {
+        try {
+            let data = req.body;
+            let create = await userService.adminAddClass(data['class_']);
+            return res.json({class_: create});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//DELETE CLASS----------------------------------------------------------------------------------------------------------
+
+    async adminTimetableDelClass(req, res, next) {
+        try {
+            let class_ = req.body['class_'];
+            let del = await userService.adminDelClass(class_);
+            return res.json({class_: del});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//---------------------------------------------------EVENTS-------------------------------------------------------------
+
+//GET ALL EVENTS--------------------------------------------------------------------------------------------------------
+    async adminEventsGet(req, res, next) {
+        try {
+            let total = [];
+            let events = await userService.getEvents();
+            for (let i in events) {
+                total.push([events[i]['text'], events[i]['date'], events[i]['place']]);
+            }
+            return res.json({events: total});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//DELETE EVENT----------------------------------------------------------------------------------------------------------
+
     async adminEventsDel(req, res, next) {
         try {
-            let data = req.query;
-            let userData = await userService.adminEventDel(data['data']);
-            return res.redirect('/');
+            let data = req.body;
+            let del = await userService.adminEventDel(data['place'], data['date'], data['text']);
+            return res.json({del: del});
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//Ban user-------------------------
-    async adminEventsBan(req, res, next) {
+//ADD NEW EVENT---------------------------------------------------------------------------------------------------------
+    async adminEventAdd(req, res, next) {
         try {
-            let data = req.query;
-            let userData = await userService.adminEventBan(data['data']);
-            return res.redirect('/');
+            const {refreshToken} = req.cookies;
+            let data = req.body;
+            let eventAdd = await userService.leaderEvents(refreshToken, data['place'], data['date'], data['text']);
+            return res.json({add: eventAdd});
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 
-//refresh---------------------------------------------------------------------------------------------------------------
+//--------------------------------------------NOTIFICATION--------------------------------------------------------------
 
+//GET NOTIFICATION BY CLASS---------------------------------------------------------------------------------------------
+    async adminNoticeGet(req, res, next) {
+        try {
+            let data = req.body;
+            let notify = await userService.adminGetNotify(data['class_']);
+            return res.json({notify: notify});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//DELETE NOTIFICATION---------------------------------------------------------------------------------------------------
+    async adminNoticeDel(req, res, next) {
+        try {
+            let data = req.body;
+            let notify = await userService.adminDelNotify(data['class_'], data['text']);
+            return res.json({notify: notify});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//ADD NOTIFICATION FOR ALL----------------------------------------------------------------------------------------------
+    async adminNoticeAdd(req, res, next) {
+        try {
+            let data = req.body;
+            let notify = await userService.adminAddNotify(data['text']);
+            return res.json({notify: notify});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+//=================================================REFRESH==============================================================
     async refresh(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
             const token = await userService.refresh(refreshToken);
+
+            res.clearCookie('refreshToken');
+            res.clearCookie('accessToken');
+
             if (token === "userNone" || token === "passwordNone" || null)
                 return token;
-            try {
-                res.cookie('accessToken', token.accessToken, {maxAge: 1000 * 60 * 15, httpOnly: true, secure: true});
-                res.cookie('refreshToken', token.refreshToken, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: true});
-            } catch (e) {
-                next();
-                //console.log(e);
-            }
+
+            res.cookie('accessToken', token.accessToken, {
+                maxAge: 1000 * 60 * 15,
+                httpOnly: true,
+                secure: true
+            });
+            res.cookie('refreshToken', token.refreshToken, {
+                maxAge: 1000 * 60 * 60 * 24 * 7,
+                httpOnly: true,
+                secure: true
+            });
             switch (token.data[0]) {
                 case "student":
                     return token.data;
@@ -684,7 +889,7 @@ class UserController {
                     return '/';
             }
         } catch (e) {
-            return next(e);
+            next(e);
         }
     }
 }
