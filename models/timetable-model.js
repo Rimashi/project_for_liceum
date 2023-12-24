@@ -7,7 +7,7 @@ const TimetableSchema = new Schema({
     wednesday: {type: String, unique: false, required: true},
     thursday: {type: String, unique: false, required: true},
     friday: {type: String, unique: false, required: true},
-    saturday: {type: String, unique: false, required: true}//скорее всего предметы разделять либо / либо _ подумать
+    saturday: {type: String, unique: false, required: true}
 });
 
 module.exports = model('Timetable', TimetableSchema);
