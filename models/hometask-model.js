@@ -6,6 +6,7 @@ const HometaskSchema = new Schema({
     class: {type: String, unique: false, required: true},
     subject: {type: String, unique: false, required: true},
     date: {type: String, unique: false, required: true},
+    file: {type: String, unique: false, required: false},
     proved: {type: Boolean, unique: false, required: true}
 });
 
