@@ -7,25 +7,19 @@ const createPath = (page) => path.resolve(__dirname, '../views', `${page}.ejs`);
 module.exports = async function (req, res, next) {
     try {
         const tokens = req.cookies;
-        //console.log(tokens.accessToken);
         if (tokens.redirect_errors) {
-            console.log("refresh_token_not_found");///
-            return next();
+            console.log("problem with tokens");
+            return res.redirect('/');
         }
+
+        let refreshToken = tokens.refreshToken;
         if (tokens.accessToken) {
-            const refresh = tokens.refreshToken;
+            let accesValid = tokenService.validateAccessToken(tokens.accessToken);
+            let refreshValid = tokenService.validateRefreshToken(refreshToken);
+            if (accesValid && refreshValid) {
 
-            const userData = tokenService.validateRefreshToken(refresh);
-
-            const userDataAccess = tokenService.validateAccessToken(tokens.accessToken);
-
-            //console.log(`access - ${tokens.accessToken} ::: refresh - ${tokens.refreshToken}`);///
-            //console.log(`${userData.status} - статус в редиректе, ${userDataAccess} --access`);///
-
-            if (userData && userDataAccess) {
-                switch (userData.status) {
+                switch (accesValid.status) {
                     case "student":
-                        console.log("student redirect");///
                         return res.redirect("/student");
                     case "leader":
                         return res.redirect('/leader');
@@ -35,55 +29,37 @@ module.exports = async function (req, res, next) {
                         console.log("status is not defind");
                         return res.redirect('/');
                 }
+
             } else {
-                if (userDataAccess === null) {
-                    console.log("refreshToken not valid");
-                    const token = await userController.refresh(req, res, next);
-                    //console.log(token)
-                    switch (token) {
-                        case "userNone":
-                            //res.cookie('redirect_errors', true);
-                            return next();
-                        case "passwordNone":
-                            //res.cookie('redirect_errors', true);
-                            return next();
-                        case "/":
-                            return next();
-                        default:
-                            res.redirect("/" + token[0]);
-                    }
+                let refreshFunc = await userController.refresh(req, res, next);
+                switch (refreshFunc) {
+                    case "userNone":
+                        return next();
+                    case "passwordNone":
+                        return next();
+                    case "/":
+                        return next();
+                    default:
+                        return res.redirect("/" + refreshFunc[0]);
                 }
             }
-            return next();
         } else {
-            const refresh = tokens.refreshToken;
-            //console.log(refresh);
-            //console.log(tokenService.validateRefreshToken(refresh));
-            if (refresh) {
-                //console.log(refreshToken);
-                if (!refresh) {
-                    console.log("problem with refresh");///
-                    return next();
-                } else {
-                    console.log("refresh");///
-                    const token = await userController.refresh(req, res, next);
-                    //console.log(token);
-                    switch (token) {
-                        case "userNone":
-                            //res.cookie('redirect_errors', true);
-                            return next();
-                        case "passwordNone":
-                            //res.cookie('redirect_errors', true);
-                            return next();
-                        case "/index":
-                            return next();
-                        default:
-                            res.redirect("/" + token[0]);
-                    }
-                }
+            let refreshValid = tokenService.validateRefreshToken(refreshToken);
+            if (!refreshValid) {
+                return next();
             }
-            console.log("problem with tokens");///
-            // return res.redirect('/index');
+            let refreshFunc = await userController.refresh(req, res, next);
+            if (refreshValid)
+                switch (refreshFunc) {
+                    case "userNone":
+                        return next();
+                    case "passwordNone":
+                        return next();
+                    case "/":
+                        return next();
+                    default:
+                        return res.redirect("/" + refreshFunc[0]);
+                }
             return next();
         }
     } catch (e) {
