@@ -33,15 +33,22 @@ class TokenService {
             tokenData.refreshToken = refreshToken;
             return tokenData.save();
         }
-        return await tokenModel.create({user: userId, refreshToken});
+        return await tokenModel.create({user: userId, refreshToken: refreshToken});
     }
 
     async removeToken(refreshToken) {
-        return await tokenModel.deleteOne({refreshToken});
+        return tokenModel.deleteOne({refreshToken: refreshToken});
     }
 
     async findToken(refreshToken) {
-        return await tokenModel.findOne({refreshToken});
+        return tokenModel.findOne({refreshToken: refreshToken});
+    }
+
+    async findUserById(userId) {
+        let refreshToken = await tokenModel.findOne({user: userId});
+        if (refreshToken === null)
+            return null;
+        return refreshToken['refreshToken'];
     }
 
 }
