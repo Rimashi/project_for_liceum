@@ -10,7 +10,8 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const router = require('./router/index_router');
 const bodyParser = require("body-parser");
-
+const errorMid = require('./middlewares/error-middleware');
+//const createError = require('http-errors');
 //----------------------------------------------------------------------------------------------------------------------
 //основные константы
 
@@ -38,6 +39,13 @@ app.set("view engine", "ejs");
 app.use(express.static(path.join(__dirname, 'views')));
 //app.use(express.static(`${__dirname}/views`));
 
+app.use(errorMid);
+app.use(function (req, res) {
+    return res.status(404).render(createPath('error'), {
+        status: 404,
+        message: "Запрашиваемый ресурс не найден"
+    });
+});
 
 //----------------------------------------------------------------------------------------------------------------------
 //database connection
