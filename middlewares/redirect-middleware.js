@@ -1,8 +1,5 @@
 const tokenService = require('../service/token-service');
-const path = require("path");
 const userController = require('../controllers/user-controller');
-
-const createPath = (page) => path.resolve(__dirname, '../views', `${page}.ejs`);
 
 module.exports = async function (req, res, next) {
     try {
