@@ -37,7 +37,7 @@ $(document).ready(() => {
 
     //загрузка файлов
     $('.hometask-for-day__download').click(function () {
-        let links = $(this).val().split(":");
+        let links = decodeURIComponent($(this).val()).split(":");
         for (let i in links) {
             let url = "/download/" + encodeURIComponent(links[i]);
             forceDownload(url, links[i]);
@@ -227,6 +227,10 @@ function openModal(name) {
     })
 }
 
+function ucfirst(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 
 $('.login-button').click(() => {
     openModal('login');
@@ -288,7 +292,7 @@ $('.button-add-hometask').click(() => {
         success: function (json) {
             let a = json.subjects;
             for (let i in a) {
-                subject_select.append('<option value=' + a[i].replace(" ", "_") + '>' + a[i] + '</option>');
+                subject_select.append('<option value=' + a[i].replace(" ", "_") + '>' + ucfirst(a[i]) + '</option>');
             }
         }
     });
@@ -339,21 +343,18 @@ $('.button-add-hometask').click(() => {
         $('#homework_text').removeClass('not-correct');
         if (text === "" || text === undefined) {
             $('#homework_text').addClass('not-correct');
-            return;
         } else {
             if (date === "" || date === undefined) {
                 alert('выберите дату и предмет');
-                return;
             } else {
                 if (subject === "" || subject === undefined) {
                     alert('выберите предмет');
-                    return;
                 } else {
 
                     formData.append("date", date);
                     formData.append("subject", subject);
                     formData.append("text", text);
-                    //console.log(formData.get('files'), " date, sub, text", "file");//добавить обработку файла
+
                     $.ajax({
                         url: '/homework/send',
                         type: 'POST',
