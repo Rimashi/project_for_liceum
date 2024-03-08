@@ -2,35 +2,56 @@ const Router = require('express').Router;
 const userController = require('../controllers/user-controller');
 const router = new Router();
 const urlencodedParser = require('express').urlencoded({extended: false});
-const {body} = require('express-validator');
 const authMiddleware = require('../middlewares/auth-middleware');
 const redirectMid = require('../middlewares/redirect-middleware');
 const multer = require("multer");
 const path = require("path");
-const grid = require('gridfs-stream');
 const apiError = require("../dtos/api-error");
+const fs = require('fs');
 
 const storage = multer.diskStorage({
+    encoding: 'utf8',
     destination: function (req, file, cb) {
         cb(null, './files_from_users');
     },
     filename: function (req, file, cb) {
-        let name = file.originalname.split(".")[0].replaceAll(";", "_");
-        let newName = '';
-        if (name.length > 20) {
-            for (let i = 0; i < 20; i++) {
-                newName += name[i];
+        file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8')
+        let name = "";
+        let filePath = './files_from_users' + file.originalname;
+        fs.access(filePath, fs.constants.F_OK, (err) => {
+            if (err) {
+                // Файл не существует, продолжить обработку
+                name = file.originalname.split(".")[0].replaceAll(";", "_");
+                let newName = '';
+                if (name.length > 100) {
+                    for (let i = 0; i < 20; i++) {
+                        newName += name[i];
+                    }
+                    newName += path.extname(file.originalname);
+                } else {
+                    newName = file.originalname;
+                }
+                cb(null, newName);
             }
-            newName += path.extname(file.originalname);
-        } else {
-            newName = file.originalname;
-        }
-        cb(null, newName);
+            const randomNumber = Math.floor(Math.random() * 1000);
+            const currentDate = new Date();
+            name = file.originalname.split(".")[0].replaceAll(";", "_") + randomNumber + currentDate.toISOString().replace(/:/g, '-');
+            let newName = '';
+            if (name.length > 100) {
+                for (let i = 0; i < 20; i++) {
+                    newName += name[i];
+                }
+                newName += path.extname(file.originalname);
+            } else {
+                newName = file.originalname;
+            }
+            cb(null, newName);
+        })
     }
 })
 const fileFilter = (req, file, cb) => {
     const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf', '.py', '.js', '.php', '.mp4', '.docx', '.doc', '.xls', '.xlsx', '.csv', '.zip', '.rar', '.svg', '.css', '.html', '.htm', '.pptx', '.sql', '.txt', '.mp3', '.mov', '.wav'];
-    const extname = path.extname(file.originalname).toLowerCase();
+    let extname = path.extname(file.originalname).toLowerCase();
     if (!allowedExtensions.includes(extname)) {
         throw apiError.BadRequest("наш сервер не поддерживает расширение вашего файла :/");//не работает должным образом
         // return cb(new Error('Invalid file extension'), false);
@@ -50,6 +71,50 @@ const upload = multer({
     storage: storage,
     fileFilter: fileFilter
 });
+
+const storageConf = multer.diskStorage({
+    encoding: 'utf8',
+    destination: function (req, file, cb) {
+        cb(null, './files_to_parse');
+    },
+    filename: function (req, file, cb) {
+        file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8')
+        let filePath = './files_to_parse' + file.originalname;
+        fs.access(filePath, fs.constants.F_OK, (err) => {
+            if (err) {
+                // Файл не существует, продолжить обработку
+                return cb(null, generateUniqueFilename(file));
+            }
+
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    console.error('Ошибка при удалении файла:', err);
+                    return cb(err, null);
+                }
+                return cb(null, generateUniqueFilename(file));
+            })
+        })
+    }
+})
+
+function generateUniqueFilename(file) {
+    let name = file.originalname.split(".")[0].replaceAll(";", "_").replaceAll(" ", "_");
+    let newName = '';
+    if (name.length > 100) {
+        for (let i = 0; i < 20; i++) {
+            newName += name[i];
+        }
+        newName += path.extname(file.originalname);
+    } else {
+        newName = file.originalname;
+    }
+    return newName;
+}
+
+const upload_parse = multer({
+    storage: storageConf,
+    fileFilter: fileFilter
+})
 //===================================================ROUTS==============================================================
 
 //===============================================REGISTRATION===========================================================
@@ -161,6 +226,8 @@ router.post('/checkmodal/ban', urlencodedParser, authMiddleware, userController.
 //--------------------------------------------------LOADING-------------------------------------------------------------
 router.get('/admin', authMiddleware, userController.adminPage);
 
+router.get('/admin/help', authMiddleware, userController.adminHelpPage);
+
 //================================================USERS PART============================================================
 
 //------------------------------------------------FIND USER-------------------------------------------------------------
@@ -168,6 +235,10 @@ router.post('/admin/users/find', urlencodedParser, authMiddleware, userControlle
 
 //-----------------------------------------GET LIST OF CLASSES----------------------------------------------------------
 router.get('/admin/users/class', urlencodedParser, authMiddleware, userController.adminUsersClass);
+
+router.get('/admin/users/get/file', urlencodedParser, authMiddleware, userController.adminUsersFileGet);
+
+router.post('/admin/users/class/change', urlencodedParser, authMiddleware, userController.adminUsersClassChange);
 
 //----------------------------------------GET LIST OF USERS BY CLASS----------------------------------------------------
 router.post('/admin/users/list', urlencodedParser, authMiddleware, userController.adminUsersList);
@@ -177,6 +248,8 @@ router.post('/admin/user/password', urlencodedParser, authMiddleware, userContro
 
 //-----------------------------------------------DELETE USER------------------------------------------------------------
 router.post('/admin/user/delete', urlencodedParser, authMiddleware, userController.adminUserDelete);
+
+router.post('/admin/users/load', urlencodedParser, authMiddleware, upload_parse.single('file'), userController.adminAddFileOfStudents);
 
 //-------------------------------------------CHANGE USER'S STATUS-------------------------------------------------------
 router.post('/admin/user/status', urlencodedParser, authMiddleware, userController.adminUserStatus);
@@ -208,8 +281,40 @@ router.post('/admin/notice/add', urlencodedParser, authMiddleware, userControlle
 
 //==============================================ADMIN TEACHER===========================================================
 
+//---------------------------------------------GET ALL TEACHERS---------------------------------------------------------
+router.get('/admin/teacher/get', urlencodedParser, authMiddleware, userController.adminGetTeachers);
+
+//------------------------------------GET ALL STUDENTS FOR TEACHER------------------------------------------------------
+
+//---------------------------------------GET SUBJECTS FOR TEACHER-------------------------------------------------------
+router.post('/admin/teacher/subject/get', urlencodedParser, authMiddleware, userController.adminGetTeachersSubjects);
+
+router.post('/admin/teacher/othersubject/get', urlencodedParser, authMiddleware, userController.adminGetOtherSubjects);
+
+router.post('/admin/teacher/subject/add', urlencodedParser, authMiddleware, userController.adminAddSubjectTeacher);
+
+router.post('/admin/teacher/subject/del', urlencodedParser, authMiddleware, userController.adminDelSubjectTeacher);
+
 //---------------------------------------------ADD NEW TEACHER----------------------------------------------------------
-router.post('/admin/teacher/add', urlencodedParser, userController.adminAddTeacher);//authmiddleware добавь
+router.post('/admin/teacher/add', urlencodedParser, authMiddleware, userController.adminAddTeacher);
+
+router.post('/admin/teacher/del', urlencodedParser, authMiddleware, userController.adminDelTeacher);
+
+router.post('/admin/teacher/find', urlencodedParser, authMiddleware, userController.adminFindTeacher);
+
+router.post('/admin/teacher/load', urlencodedParser, authMiddleware, upload_parse.single('file'), userController.adminAddFileOfTeachers);
+
+//-----------------------------------GET STUDENTS BY CLASS TO TEACHER---------------------------------------------------
+router.post('/admin/teacher/student/get', urlencodedParser, authMiddleware, userController.adminTeachersStudents);
+
+//----------------------------------------FIND STUDENT FOR TEACHER------------------------------------------------------
+router.post('/admin/teacher/student/find', urlencodedParser, authMiddleware, userController.adminTeacherStudentFind);
+
+router.post('/admin/teacher/student/add', urlencodedParser, authMiddleware, userController.adminAddStudentToTeacher);
+
+router.post('/admin/teacher/student/del', urlencodedParser, authMiddleware, userController.adminDelStudentToTeacher);
+
+router.post('/admin/teacher/students/add/class', urlencodedParser, authMiddleware, userController.adminAddClassToTeacher);
 
 //============================================ADMIN TIMETABLE===========================================================
 
