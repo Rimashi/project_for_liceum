@@ -38,8 +38,10 @@ $(document).ready(() => {
     //загрузка файлов
     $('.hometask-for-day__download').click(function () {
         let links = decodeURIComponent($(this).val()).split(":");
+        console.log(links);
         for (let i in links) {
             let url = "/download/" + encodeURIComponent(links[i]);
+            console.log(url);
             forceDownload(url, links[i]);
         }
     });
@@ -292,7 +294,7 @@ $('.button-add-hometask').click(() => {
         success: function (json) {
             let a = json.subjects;
             for (let i in a) {
-                subject_select.append('<option value=' + a[i].replace(" ", "_") + '>' + ucfirst(a[i]) + '</option>');
+                subject_select.append('<option value=' + a[i] + '>' + ucfirst(a[i]).replaceAll("_", " ") + '</option>');
             }
         }
     });
@@ -328,7 +330,7 @@ $('.button-add-hometask').click(() => {
 
     $('#add_hometask_button').click(() => {
         let date = $('#date_homework').val();
-        let text = $('#homework_text').val();
+        let text = $('#homework_text').val().trim();
         let subject = subject_select.val();
         let file = $('#upload')[0].files;
         // let file = $('#upload').prop('files');
@@ -397,28 +399,41 @@ $('.button-check-hometask').click(() => {
         success: function (json) {
             let g = json['hometasks'];
             for (let i in g) {
-                if (g[i].length > 0)
+                if (g[i].length > 0) {
+                    let fileSt = '';
+                    for (let file in g[i][4]) {
+                        if ((Number(file) + 1) === g[i][4].length) {
+                            fileSt += g[i][4][file];
+                        } else {
+                            fileSt += g[i][4][file] + ":";
+                        }
+                    }
                     a.append('<div class="content-table-list__table-element-check table-element-check" id="element_check_' + i + '">' +
                         '<div class="element-check info-check-element">' +
                         '   <div class="info-check-element__login" id="surname' + i + '">' + g[i][0] + '</div>\n' +
                         '        <div class="info-check-element__date" id="date' + i + '">' + g[i][1] + '</div>\n' +
-                        '        <div class="info-check-element__subject" id="subject' + i + '">' + g[i][2] + '</div>\n' +
+                        '        <div class="info-check-element__subject" id="subject' + i + '" data-value="' + g[i][2] + '">' + ucfirst(g[i][2]).replaceAll("_", " ") + '</div>\n' +
                         '    </div>\n' +
-                        '    <div class="element-check__content">' + g[i][3] + '</div>\n' +
-                        '\n' +
+                        '    <div class="element-check__content">' + g[i][3] + '</div>\n' )
+                    if (fileSt.length > 0) {
+                        a.append(
+                            '<button id="download" value="' + fileSt + '" class="hometask-for-day__download"></button>'
+                        )
+                    }
+                    a.append('\n' +
                         '    <div class="element-check__function-table-element function-table-element">\n' +
-
                         '        <button type="button" name="add" id="add_' + i + '" class="function-table-element__function-button add_leader">Добавить</button>\n' +
                         '        <button type="button" name="delete" id="del_' + i + '" class="function-table-element__function-button delete_leader">Удалить</button>\n' +
                         '        <button type="button" name="ban" id="ban_' + i + '" class="function-table-element__function-button ban_leader">Бан</button>\n' +
                         '    </div>\n' +
                         '</div>')
+                }
             }
             $('.add_leader').on('click', function (e) {
                 let id = e.target.id.split('_')[1];
-                let kok = $('#surname' + id).text();
+                let kok = $('#surname' + id).text().toLowerCase();
                 let kok1 = $('#date' + id).text();
-                let kok2 = $('#subject' + id).text();
+                let kok2 = $('#subject' + id).data('value');
                 $.ajax({
                     type: "POST",
                     url: 'checkmodal/add',
@@ -431,9 +446,9 @@ $('.button-check-hometask').click(() => {
 
             $('.delete_leader').on('click', function (e) {
                 let id = e.target.id.split('_')[1];
-                let kok = $('#surname' + id).text();
+                let kok = $('#surname' + id).text().toLowerCase();
                 let kok1 = $('#date' + id).text();
-                let kok2 = $('#subject' + id).text();
+                let kok2 = $('#subject' + id).data('value');
                 $.ajax({
                     type: "POST",
                     url: 'checkmodal/del',
@@ -446,9 +461,9 @@ $('.button-check-hometask').click(() => {
 
             $('.ban_leader').on('click', function (e) {
                 let id = e.target.id.split('_')[1];
-                let kok = $('#surname' + id).text();
+                let kok = $('#surname' + id).text().toLowerCase();
                 let kok1 = $('#date' + id).text();
-                let kok2 = $('#subject' + id).text();
+                let kok2 = $('#subject' + id).data('value');
                 $.ajax({
                     type: "POST",
                     url: 'checkmodal/ban',
@@ -457,6 +472,16 @@ $('.button-check-hometask').click(() => {
                         $('#element_check_' + id).remove();
                     }
                 });
+            });
+
+            $('#download').click(function () {
+                let links = decodeURIComponent($(this).val()).split(":");
+                console.log(links);
+                for (let i in links) {
+                    let url = "/download/" + encodeURIComponent(links[i]);
+                    console.log(url);
+                    forceDownload(url, links[i]);
+                }
             });
         }
     });

@@ -23,7 +23,7 @@ $(document).ready(() => {
                     }
                 buf = "";
                 buf += '<div class="subjects-block__subject-school subject-school" onclick="openModalSubject(`' + subjects[key] + '`)">';
-                buf += '    <h3 class="subject-school__title">' + ucfirst(subjects[key]) + '</h3>';
+                buf += '    <h3 class="subject-school__title">' + ucfirst(replace_(subjects[key])) + '</h3>';
                 buf += '<div class="subject-school__homework-checked">ДЗ - ' + is + '</div>    </div>';
                 container.append(buf);
             }
@@ -50,6 +50,7 @@ function openModalSubject(subject) {
     let is = 'нет';
     let teacher = 'не указан';
     let classroom = 'не указан';
+    console.log(subject);
     if (hometasks[subject.toLowerCase()]) {
         for (let i in hometasks[subject.toLowerCase()]) {
             if (hometasks[subject.toLowerCase()][i]['text'].length) {
@@ -65,7 +66,7 @@ function openModalSubject(subject) {
     let div =
         `<dialog class="modal-subject  _dialog">
         <div class="modal-subject__content-close content-close"></div>
-        <h3 class="modal-subject__title-modal-subject _title-modal">${ucfirst(subject)}</h3>
+        <h3 class="modal-subject__title-modal-subject _title-modal">${ucfirst(replace_(subject))}</h3>
         <div class="modal-subject__content-subject content-subject">
             <div class="content-subject__left-content-subject left-content-subject">
                 <div class="left-content-subject__teacher-inforamtion teacher-inforamtion">
@@ -92,6 +93,7 @@ function openModalSubject(subject) {
                     fileSt += hometasks[subject][key].file[i] + ":";
                 }
             }
+            console.log(fileSt);
             if (fileSt.length > 0) {
                 div += `<button id="download" value="${fileSt}" class="hometask-for-day__download"></button>`
             }
@@ -169,4 +171,16 @@ function forceDownload(url, fileName) {
 
 function ucfirst(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function replace_(str) {
+    let kol = 0;
+    for (let i = 0; i < str.length; i++) {
+        if (str[i] === '_')
+            kol += 1;
+    }
+    if (kol > 0) {
+        return str.replaceAll("_", " ");
+    }
+    return str;
 }

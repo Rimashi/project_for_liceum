@@ -45,19 +45,6 @@ function generatePass() {
     return Math.floor(100000 + crypto.randomInt(900000));
 }
 
-//REPLACE "_" WITH " " -------------------------------------------------------------------------------------------------
-function replace_(str) {
-    let kol = 0;
-    for (let i = 0; i < str.length; i++) {
-        if (str[i] === '_')
-            kol += 1;
-    }
-    if (kol > 0) {
-        return str.replaceAll("_", " ");
-    }
-    return str;
-}
-
 //GET PARALEL-----------------------------------------------------------------------------------------------------------
 async function getParalel(class_) {
     let num = Number(class_.split("_")[0]);
@@ -204,12 +191,12 @@ class UserService {
         const user = await UserModel.create({
             name: name,
             surname: surname,
-            login: surname + name,
+            login: "",
             password: hashpassword,
             class: class_,
             status: status,
             rating: 0,
-            ban: 0,
+            ban: "",
             isChangePass: false
         });
 
@@ -247,13 +234,16 @@ class UserService {
         let name = user.name;
         let class_ = user.class;
         const hashPassword = await bcrypt.hash(password, 3);
-        await UserModel.updateOne({"surname": surname, "name": name, "class": class_}, {
-            $set: {
-                "login": login,
-                "password": hashPassword,
-                "isChangePass": true
-            }
-        });
+        if (!(await UserModel.findOne({login: login}))) {
+            await UserModel.updateOne({"surname": surname, "name": name, "class": class_}, {
+                $set: {
+                    "login": login,
+                    "password": hashPassword,
+                    "isChangePass": true
+                }
+            });
+            return true
+        }
         throw apiError.BadRequest('Ошибка данных, проверьте корректность введенных данных');
     }
 
@@ -393,9 +383,10 @@ class UserService {
 
         let totalSub = [];
         for (let i of dateOfMight) {
-            totalSub.push(replace_(i));
+            totalSub.push(i);
         }
         totalSub.sort();
+
         return totalSub;
     }
 
@@ -432,11 +423,29 @@ class UserService {
             if (homework[i]['proved'] === false) {
                 if (homework[i]['date'].split('.')[2] >= dt.year)
                     if (homework[i]['date'].split('.')[1] > to_day_month(dt.month)) {
-                        d.push(ucfirst(homework[i]['surname']), homework[i]['date'], replace_(homework[i]['subject']), homework[i]['text']);
+                        let file = homework[i]['file'].split(";");
+                        let links = [];
+                        for (let j = 0; j < file.length - 1; j++) {
+
+                            let link = await getFileLink('./files_from_users', file[j]);
+
+                            if (link && link.length > 0)
+                                links.push(link);
+                        }
+                        d.push(ucfirst(homework[i]['surname']), homework[i]['date'], homework[i]['subject'], homework[i]['text'], links);
                     } else {
                         if (homework[i]['date'].split('.')[1] === to_day_month(dt.month)) {
                             if (homework[i]['date'].split('.')[0] >= to_day_month(dt.day)) {
-                                d.push(ucfirst(homework[i]['surname']), homework[i]['date'], replace_(homework[i]['subject']), homework[i]['text']);
+                                let file = homework[i]['file'].split(";");
+                                let links = [];
+                                for (let j = 0; j < file.length - 1; j++) {
+
+                                    let link = await getFileLink('./files_from_users', file[j]);
+
+                                    if (link && link.length > 0)
+                                        links.push(link);
+                                }
+                                d.push(ucfirst(homework[i]['surname']), homework[i]['date'], homework[i]['subject'], homework[i]['text'], links);
                             }
                         }
                     }
@@ -659,14 +668,14 @@ class UserService {
         let sec = [];
         let Rate = 0;
         let homework = await hometaskModel.find({class: user.class, date: today});
-        if (homework)
+        if (homework) {
             for (let i in homework) {
                 let user = await UserModel.findOne({surname: homework[i]['surname']});
                 Rate += Number(user['rating']);
             }
-        if (Rate > 0)
-            Rate /= homework.length;
-
+            if (Rate > 0)
+                Rate /= homework.length;
+        }
         for (let i in homework) {
             let user = await UserModel.findOne({surname: homework[i]['surname']});
             if (homework[i]['proved'] === true || Number(user['rating']) >= Rate) {
@@ -676,14 +685,14 @@ class UserService {
         }
         sendHomework.sort();
         let homework2 = await hometaskModel.find({class: user.class, date: tommorow});
-        if (homework2)
+        if (homework2) {
             for (let i in homework2) {
                 let user = await UserModel.findOne({surname: homework2[i]['surname']});
                 Rate += Number(user['rating']);
             }
-        if (Rate > 0)
-            Rate /= homework2.length;
-
+            if (Rate > 0)
+                Rate /= homework2.length;
+        }
         for (let i in homework2) {
             let user = await UserModel.findOne({surname: homework2[i]['surname']});
             if (homework2[i]['proved'] === true || Number(user['rating']) >= Rate) {
@@ -731,7 +740,7 @@ class UserService {
 
                 let link = await getFileLink('./files_from_users', files[i]);
 
-                if (link.length > 0)
+                if (link && link.length > 0)
                     links.push(link);
             }
 
@@ -752,7 +761,7 @@ class UserService {
                 for (let i = 0; i < files.length - 1; i++) {
                     let link = await getFileLink('./files_from_users', files[i]);
 
-                    if (link.length > 0)
+                    if (link && link.length > 0)
                         links.push(link);
                 }
                 hometasks[subjects[i]] = [{
@@ -797,7 +806,7 @@ class UserService {
 
                             let link = await getFileLink('./files_from_users', files[i]);
 
-                            if (link.length > 0)
+                            if (link && link.length > 0)
                                 links.push(link);
                         }
                         total_result.push({date: total[task]['date'], text: total[task]['text'], file: links});//date subject text [links]
@@ -851,7 +860,7 @@ class UserService {
         }
         const isWritten = await hometaskModel.findOne({
             surname: user.surname,
-            subject: replace_(subject),
+            subject: subject,
             date: date,
         });
         if (isWritten) {
@@ -875,7 +884,7 @@ class UserService {
             surname: user.surname,
             text: homework,
             class: user.class,
-            subject: replace_(subject),
+            subject: subject,
             file: files,
             date: date,
             proved: false
@@ -1004,11 +1013,12 @@ class UserService {
     async leaderNotification(refreshToken, notification) {
         const dt = DateTime.now();
         const user = await UserModel.findById(tokenService.validateRefreshToken(refreshToken).id);
-        await notificationModel.create({
-            text: notification,
-            class: user.class,
-            date: to_day_month(dt.day) + "." + to_day_month(dt.month) + "." + dt.year
-        });
+        if (!(await notificationModel.findOne({text: notification, class: user.class})))
+            await notificationModel.create({
+                text: notification,
+                class: user.class,
+                date: to_day_month(dt.day) + "." + to_day_month(dt.month) + "." + dt.year
+            });
 
         return true;
     }
@@ -1018,12 +1028,21 @@ class UserService {
     async leaderEvents(refreshToken, location, date, text) {
         let dt = date.split('-')[2] + "." + date.split('-')[1] + "." + date.split('-')[0];
         const user = await UserModel.findById(tokenService.validateRefreshToken(refreshToken).id);
-        await eventModel.create({
-            place: location,
-            text: text,
-            date: dt,
-            surname: user.surname
-        });
+        if (await eventModel.findOne({date: dt, place: location})) {
+            let lastEvent = await eventModel.findOne({date: dt, place: location});
+            await eventModel.updateOne({date: dt, place: location}, {
+                $set: {
+                    text: lastEvent.text + ". " + text.charAt(0).toUpperCase() + text.slice(1)
+                }
+            })
+        } else {
+            await eventModel.create({
+                place: location,
+                text: text,
+                date: dt,
+                surname: user.surname
+            });
+        }
         return true;
     }
 
@@ -1051,23 +1070,29 @@ class UserService {
             date: data['kok1'],
             subject: data['kok2']
         });
-        let files = ht['file'].split(';');
-        await hometaskModel.deleteOne({
-            surname: data['kok'].toLowerCase(),
-            date: data['kok1'],
-            subject: data['kok2']
-        });
-        if (files.length > 1)
-            for (let i in files) {
-                let filePath = './files_from_users/' + files[i];
-                fs.unlink(filePath, (err) => {
-                    if (err) {
-                        console.error('Ошибка при удалении файла:', err);
-                        throw apiError.MaybeServerProblem("файл прикрепленный к заданию не найден, но дз удалено");
+        if (ht) {
+            let files = ht['file'].split(';');
+            await hometaskModel.deleteOne({
+                surname: data['kok'].toLowerCase(),
+                date: data['kok1'],
+                subject: data['kok2']
+            });
+            if (files.length > 1) {
+                try {
+                    for (let i in files) {
+                        let filePath = './files_from_users/' + files[i];
+                        fs.unlink(filePath, (err) => {
+                            if (err) {
+                                console.error('файл прикрепленный к заданию не найден, но дз удалено. Ошибка при удалении файла:', err);
+                                //throw apiError.MaybeServerProblem("файл прикрепленный к заданию не найден, но дз удалено");
+                            }
+                        });
                     }
-                });
+                } catch (e) {
+                    console.error(e);
+                }
             }
-
+        }
         return true;
     }
 

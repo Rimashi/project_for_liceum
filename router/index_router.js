@@ -98,7 +98,7 @@ const storageConf = multer.diskStorage({
 })
 
 function generateUniqueFilename(file) {
-    let name = file.originalname.split(".")[0].replaceAll(";", "_").replaceAll(" ", "_");
+    let name = file.originalname.split(".")[0].replaceAll(";", "_").replaceAll(" ", "_").replaceAll("/", "");
     let newName = '';
     if (name.length > 100) {
         for (let i = 0; i < 20; i++) {

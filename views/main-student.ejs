@@ -39,7 +39,7 @@
                                 <% for(let i = 0;i < homework.length;i++){ %>
                                     <div class="hometask-for-days__hometask-for-day hometask-for-day">
                                         <div class="hometask-for-day__date"><%= homework[i][0].split(".")[0] + "." + homework[i][0].split(".")[1] %></div>
-                                        <div class="hometask-for-day__subject"><%= homework[i][1].charAt(0).toUpperCase() + homework[i][1].slice(1) %></div>
+                                        <div class="hometask-for-day__subject"><%= homework[i][1].charAt(0).toUpperCase() + homework[i][1].slice(1).replaceAll("_", " ") %></div>
                                         <div class="hometask-for-day__task"><%= homework[i][2] %></div>
                                         <% let fileSt = '' %>
                                         <% for(let file in homework[i][3]){ %>
