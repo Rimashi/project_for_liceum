@@ -23,7 +23,7 @@ $(document).ready(() => {
                     }
                 buf = "";
                 buf += '<div class="subjects-block__subject-school subject-school" onclick="openModalSubject(`' + subjects[key] + '`)">';
-                buf += '    <h3 class="subject-school__title">' + subjects[key] + '</h3>';
+                buf += '    <h3 class="subject-school__title">' + ucfirst(replace_(subjects[key])) + '</h3>';
                 buf += '<div class="subject-school__homework-checked">ДЗ - ' + is + '</div>    </div>';
                 container.append(buf);
             }
@@ -48,22 +48,30 @@ $(document).ready(() => {
 
 function openModalSubject(subject) {
     let is = 'нет';
-    if (hometasks[subject].length > 0)
-        for (let i in hometasks[subject]) {
-            if (hometasks[subject][i]['text'].length) {
+    let teacher = 'не указан';
+    let classroom = 'не указан';
+    console.log(subject);
+    if (hometasks[subject.toLowerCase()]) {
+        for (let i in hometasks[subject.toLowerCase()]) {
+            if (hometasks[subject.toLowerCase()][i]['text'].length) {
                 is = 'есть';
                 break;
             }
         }
+    }
+    if (teachers[subject.toLowerCase()] && teachers[subject.toLowerCase()].name) {
+        teacher = teachers[subject.toLowerCase()].name;
+        classroom = teachers[subject.toLowerCase()].classroom;
+    }
     let div =
         `<dialog class="modal-subject  _dialog">
         <div class="modal-subject__content-close content-close"></div>
-        <h3 class="modal-subject__title-modal-subject _title-modal">${subject}</h3>
+        <h3 class="modal-subject__title-modal-subject _title-modal">${ucfirst(replace_(subject))}</h3>
         <div class="modal-subject__content-subject content-subject">
             <div class="content-subject__left-content-subject left-content-subject">
                 <div class="left-content-subject__teacher-inforamtion teacher-inforamtion">
-                    <div class="teacher-inforamtion__name">Учитель: ${teachers[subject].name}</div>
-                    <div class="teacher-inforamtion__cabinet">Кабинет: ${teachers[subject].classroom}</div>
+                    <div class="teacher-inforamtion__name">Учитель: ${teacher}</div>
+                    <div class="teacher-inforamtion__cabinet">Кабинет: ${classroom}</div>
                 </div>
                 <p class="left-content-subject__homework">Домашнее задание - ${is}</p>
            </div>`
@@ -76,21 +84,23 @@ function openModalSubject(subject) {
                                 <div class="hometask-for-day__date">${hometasks[subject][key].date.split(".")[0] + "." + hometasks[subject][key].date.split(".")[1]}</div>
                                 <div class="hometask-for-day__task">${hometasks[subject][key].text}</div>`
             let fileSt = '';
-            for (let i in hometasks[subject][key].file) {
-                if ((Number(file) + 1) === hometasks[subject][key].file.length) {
-                    fileSt += hometasks[subject][key].file[i];
+            let files = hometasks[subject][key].file;
+            console.log(files);
+            for (let i in files) {
+                if ((Number(i) + 1) === files.length) {
+                    fileSt += files[i];
                 } else {
                     fileSt += hometasks[subject][key].file[i] + ":";
                 }
             }
+            console.log(fileSt);
             if (fileSt.length > 0) {
                 div += `<button id="download" value="${fileSt}" class="hometask-for-day__download"></button>`
             }
-
-            `</div>`
+            div += "</div>";
         }
-        `</div>
-                </div>`
+        div += "</div></div>";
+    } else {
     }
     `</div>
   </dialog> `;
@@ -157,4 +167,20 @@ function forceDownload(url, fileName) {
         document.body.removeChild(tag);
     }
     xhr.send();
+}
+
+function ucfirst(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function replace_(str) {
+    let kol = 0;
+    for (let i = 0; i < str.length; i++) {
+        if (str[i] === '_')
+            kol += 1;
+    }
+    if (kol > 0) {
+        return str.replaceAll("_", " ");
+    }
+    return str;
 }

@@ -14,6 +14,7 @@ const apiError = require('../dtos/api-error');
 const path = require("path");
 const fs = require('fs');
 const cron = require('node-cron');
+const xlsx = require('xlsx');
 
 //=================================================FUNCTIONS============================================================
 //MAKE DAY / MONTH INTO USUAL VIEW (LIKE 01 OR 11)----------------------------------------------------------------------
@@ -25,14 +26,12 @@ function to_day_month(day) {
 }
 
 //APPEND RIGHT DAYS INTO MAS--------------------------------------------------------------------------------------------
-function add_to(a, b, c) {
+function add_to(l) {
     let list = [];
     let dt = DateTime.now();
-    list.push(
-        to_day_month(dt.plus({days: a}).day) + "." + to_day_month(dt.plus({days: a}).month) + "." + dt.plus({days: a}).year,
-        to_day_month(dt.plus({days: (b)}).day) + "." + to_day_month(dt.plus({days: (b)}).month) + "." + dt.plus({days: b}).year,
-        to_day_month(dt.plus({days: (c)}).day) + "." + to_day_month(dt.plus({days: (c)}).month) + "." + dt.plus({days: c}).year
-    );
+    for (let i in l) {
+        list.push(to_day_month(dt.plus({days: l[i]}).day) + "." + to_day_month(dt.plus({days: l[i]}).month) + "." + to_day_month(dt.plus({days: l[i]}).year));
+    }
     return list;
 }
 
@@ -46,38 +45,16 @@ function generatePass() {
     return Math.floor(100000 + crypto.randomInt(900000));
 }
 
-//REPLACE "_" WITH " " -------------------------------------------------------------------------------------------------
-function replace_(str) {
-    let kol = 0;
-    for (let i = 0; i < str.length; i++) {
-        if (str[i] === '_')
-            kol += 1;
-    }
-    if (kol > 0) {
-        return str.replaceAll("_", " ");
-    }
-    return str;
-}
-
 //GET PARALEL-----------------------------------------------------------------------------------------------------------
 async function getParalel(class_) {
     let num = Number(class_.split("_")[0]);
 
-    let timetables = await timetableModel.find();
+    let timetables = await timetableModel.find({class: {$regex: num}});
     let classes = [];
     for (let i in timetables) {
         classes.push(timetables[i]['class']);
     }
-    let allClasses = sortClasses(classes);
-    let totalClasses = [];
-    for (let i in allClasses) {
-        let number = Number(allClasses[i].split("_")[0]);
-        let letter = allClasses[i].split("_")[1];
-        if (num === number) {
-            totalClasses.push(allClasses[i]); // надо подумать, как потом прекратить идти, елси все нашел
-        }
-    }
-    return totalClasses;
+    return sortClasses(classes);
 }
 
 //SORT CLASSES----------------------------------------------------------------------------------------------------------
@@ -103,31 +80,22 @@ function sortClasses(classes) {
     return classes;
 }
 
-//GET DATA FOR TIMETABLE------------------------------------------------------------------------------------------------
-function getDataForDate(dateOfMight, indexOfDays, fromFtoS = 7, fromStoTH = 14) {
-    const week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-
-    let date;
-    let nearest = Math.min(7 - indexOfDays + week.indexOf(dateOfMight[0]), Math.abs(week.indexOf(dateOfMight[0]) - indexOfDays));
-    date = add_to(nearest, nearest + fromFtoS, nearest + fromStoTH);
-    return date;
-}
-
 //GET LINKS FOR FILES---------------------------------------------------------------------------------------------------
-async function getFileLink(filename) {
-    return new Promise((resolve, reject) => {
-        let fileDir = './files_from_users';
+async function getFileLink(fileDir, filename) {
+    return new Promise((resolve) => {
 
-        fs.readdir(fileDir, (err, files) => {
+        fs.readdir(encodeURI(fileDir), (err, files) => {
             if (err) {
-                throw apiError.MaybeServerProblem("проблемы загрузки файла. Возможно файл поврежден или отсутствует.");
+                throw apiError.MaybeServerProblem("Проблемы при чтении каталога. Возможно, каталог не существует или нет доступа.");
             }
 
-            let sortfiles = files.filter(file => file.includes(filename));
-            let fileLinks = sortfiles.map(file => path.join(fileDir, file));
-            let result = '';
-            result += fileLinks.map(filePath => (`${encodeURIComponent(path.basename(filePath))}`));
+            let filePath = files.find(file => file === filename);
+            if (!filePath) {
+                resolve(null);
+                return;
+            }
 
+            let result = encodeURI(path.join(fileDir, filePath));
             resolve(result);
         });
         //throw apiError.MaybeServerProblem("проблемы с чтением файлов");
@@ -140,23 +108,50 @@ cron.schedule('0 0 * * 1', async function () {
     if (dt.weekday === 1) {
         let homeworks = await hometaskModel.find();
         for (let i in homeworks) {
-            if (Number(homeworks[i]['date'].split('.')[0]) < dt.day && Number(homeworks[i]['date'].split('.')[1]) === dt.month) {
-                let hometask = await hometaskModel.deleteOne({
+            if (Number(homeworks[i]['date'].split('.')[2]) < dt.year) {
+                await hometaskModel.deleteOne({
                     date: homeworks[i]['date'],
                     surname: homeworks[i]['surname'],
                     subject: homeworks[i]['subject']
                 });
             } else {
-                if (Number(homeworks[i]['date'].split('.')[0]) >= dt.day && Number(homeworks[i]['date'].split('.')[1]) < dt.month) {
-                    let hometask = await hometaskModel.deleteOne({
+                if (Number(homeworks[i]['date'].split('.')[0]) < dt.day && Number(homeworks[i]['date'].split('.')[1]) === dt.month) {
+                    await hometaskModel.deleteOne({
                         date: homeworks[i]['date'],
                         surname: homeworks[i]['surname'],
                         subject: homeworks[i]['subject']
                     });
+                } else {
+                    if (Number(homeworks[i]['date'].split('.')[0]) >= dt.day && Number(homeworks[i]['date'].split('.')[1]) < dt.month) {
+                        await hometaskModel.deleteOne({
+                            date: homeworks[i]['date'],
+                            surname: homeworks[i]['surname'],
+                            subject: homeworks[i]['subject']
+                        });
+                    }
                 }
             }
         }
     }
+
+    const directoryPath = './files_to_parse';
+
+    fs.readdir(directoryPath, (err, files) => {
+        if (err) {
+            console.error('Ошибка чтения директории:', err);
+            return;
+        }
+
+
+        files.forEach(file => {
+            const filePath = path.join(directoryPath, file);
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    console.error('Ошибка при удалении файла:', filePath, err);
+                }
+            });
+        });
+    });
 });
 
 //UP PEOPLE TO THE NEXT CLASS-------------------------------------------------------------------------------------------
@@ -188,30 +183,47 @@ class UserService {
 //=================================================REGISTRATION=========================================================
     async registration(name, surname, class_, pass, status) {
         console.log(name, surname, class_, pass, status);
-        if (await UserModel.findOne({name: name, surname: surname}))
+        if (await UserModel.findOne({name: name, surname: surname, class: class_, status: status}))
             return null;
 
-        const hashpassword = await bcrypt.hash(pass, 3);
+        const hashpassword = await bcrypt.hash(pass.toString(), 5);
 
         const user = await UserModel.create({
             name: name,
             surname: surname,
-            login: surname,
+            login: "",
             password: hashpassword,
             class: class_,
             status: status,
-            teachers_id: "",
             rating: 0,
-            ban: 0,
+            ban: "",
             isChangePass: false
         });
 
         const userDto = new UserDto(user);
-        const tokens = tokenService.generateTokens({...userDto});
-        await tokenService.saveToken(userDto.id, tokens.refreshToken);
+
+        //просматриваем преподов
+        let teachers = await teacherModel.find();
+        for (let t in teachers) {
+            let teacher = teachers[t];
+            try {
+                let students = teacher['students'];
+                for (let [key, value] of Object.entries(students)) {
+                    let student = await UserModel.findById(key);
+                    if (student['class'] === class_) {
+                        for (let subject in value) {
+                            await this.adminAddStudentForTeacher(surname + " " + name, teacher[surname] + " " + teacher['name'] + " " + teacher['lastname'], value[subject]);
+                        }
+                        break;
+                    }
+                }
+            } catch (e) {
+                //
+            }
+        }
+
 
         return {
-            ...tokens,
             user: UserDto
         }
     }
@@ -222,13 +234,16 @@ class UserService {
         let name = user.name;
         let class_ = user.class;
         const hashPassword = await bcrypt.hash(password, 3);
-        await UserModel.updateOne({"surname": surname, "name": name, "class": class_}, {
-            $set: {
-                "login": login,
-                "password": hashPassword,
-                "isChangePass": true
-            }
-        });
+        if (!(await UserModel.findOne({login: login}))) {
+            await UserModel.updateOne({"surname": surname, "name": name, "class": class_}, {
+                $set: {
+                    "login": login,
+                    "password": hashPassword,
+                    "isChangePass": true
+                }
+            });
+            return true
+        }
         throw apiError.BadRequest('Ошибка данных, проверьте корректность введенных данных');
     }
 
@@ -360,7 +375,7 @@ class UserService {
         for (let j in week) {
             let strToList = timetable[week[j]].replaceAll(")", " ").replaceAll("/", " ").split(" ");
             for (let i in strToList) {
-                if (!(['1', '2', '3', '4', '5', '6', '7'].includes(strToList[i])) && strToList[i] !== '-') { //попробовать передалать под include
+                if (!(['1', '2', '3', '4', '5', '6', '7'].includes(strToList[i])) && strToList[i] !== '-') {
                     dateOfMight.add(strToList[i]);
                 }
             }
@@ -368,9 +383,10 @@ class UserService {
 
         let totalSub = [];
         for (let i of dateOfMight) {
-            totalSub.push(replace_(i));
+            totalSub.push(i);
         }
         totalSub.sort();
+
         return totalSub;
     }
 
@@ -407,11 +423,29 @@ class UserService {
             if (homework[i]['proved'] === false) {
                 if (homework[i]['date'].split('.')[2] >= dt.year)
                     if (homework[i]['date'].split('.')[1] > to_day_month(dt.month)) {
-                        d.push(ucfirst(homework[i]['surname']), homework[i]['date'], replace_(homework[i]['subject']), homework[i]['text']);
+                        let file = homework[i]['file'].split(";");
+                        let links = [];
+                        for (let j = 0; j < file.length - 1; j++) {
+
+                            let link = await getFileLink('./files_from_users', file[j]);
+
+                            if (link && link.length > 0)
+                                links.push(link);
+                        }
+                        d.push(ucfirst(homework[i]['surname']), homework[i]['date'], homework[i]['subject'], homework[i]['text'], links);
                     } else {
                         if (homework[i]['date'].split('.')[1] === to_day_month(dt.month)) {
                             if (homework[i]['date'].split('.')[0] >= to_day_month(dt.day)) {
-                                d.push(ucfirst(homework[i]['surname']), homework[i]['date'], replace_(homework[i]['subject']), homework[i]['text']);
+                                let file = homework[i]['file'].split(";");
+                                let links = [];
+                                for (let j = 0; j < file.length - 1; j++) {
+
+                                    let link = await getFileLink('./files_from_users', file[j]);
+
+                                    if (link && link.length > 0)
+                                        links.push(link);
+                                }
+                                d.push(ucfirst(homework[i]['surname']), homework[i]['date'], homework[i]['subject'], homework[i]['text'], links);
                             }
                         }
                     }
@@ -529,11 +563,11 @@ class UserService {
 
         if (user) {
             let class_ = user['class'];
-            let users = [];
+            let users;
             if (val === "none" || val === "parallel" || val === undefined) {
-                users = await UserModel.find();
+                users = await UserModel.find({"status": {$ne: "admin"}});
             } else {
-                users = await UserModel.find({class: class_});
+                users = await UserModel.find({class: class_, status: {$ne: "admin"}});
             }
 
             users.sort((a, b) => {
@@ -558,35 +592,25 @@ class UserService {
 //------------------------------------GET TOP FIVE PERSON OF RATING FOR CLASS-------------------------------------------
     async getTopFiveOfRating(val, class_) {
         let users = [];
-        let all = [];
+        let all;
 
         if (val === "none" || val === "parallel") {
-            all = await UserModel.find();
+            all = await UserModel.find({
+                class: {$regex: `${class_.split("_")[0]}`},
+                status: {$ne: "admin"}
+            }).sort({rating: -1}).limit(7);
+
         } else {
-            all = await UserModel.find({class: class_});
+            all = await UserModel.find({class: class_, status: {$ne: "admin"}}).sort({rating: -1}).limit(7);
         }
 
         for (let i in all) {
-            if (all[i]['surname'] !== "admin") {
-                users.push(all[i]);
-            }
+            users.push(all[i]);
         }
-
-        users.sort((a, b) => {
-            let rating = b.rating - a.rating;
-
-            return rating !== 0 ? rating : a.surname.localeCompare(b.surname);
-        });
 
         let top = [];
-        let count = 0;
-        if (users.length >= 5) {
-            count = 5;
-        } else {
-            count = users.length;
-        }
 
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < users.length; i++) {
             let class_ = users[i]['class'].split("_")[0] + users[i]['class'].split("_")[1];
             top.push([ucfirst(users[i]['name']), ucfirst(users[i]['surname']), class_, users[i]['rating']]);
         }
@@ -594,9 +618,9 @@ class UserService {
         return top;
     }
 
-//------------------------------------GET CLASS RATING FOR PERSON PARALLEL----------------------------------------------
+//------------------------------------GET CLASS RATING FOR PERSON'S PARALLEL--------------------------------------------
     async getClassRate(refreshToken) {
-        let class_ = '';
+        let class_;
         if (tokenService.validateRefreshToken(refreshToken)) {
             let userData = tokenService.validateRefreshToken(refreshToken);
             let user = await UserModel.findById(userData.id);
@@ -606,7 +630,7 @@ class UserService {
         }
         let other_classes = ['11', '10', '9', '8'];
         other_classes.splice(other_classes.indexOf(class_.split("_")[0]), 1);
-        other_classes.unshift(class_.split("_")[0]);
+        other_classes.unshift(class_.split("_")[0]);// для того чтобы сначала получить параллель человека, а затем все остальные
         let classes = await getParalel(class_);
         let paralel = [];
         let ratings = [];
@@ -620,8 +644,8 @@ class UserService {
         }
 
         ratings.sort((a, b) => {
-            let rate = b[0].split("_")[1].localeCompare(a[0].split("_")[1]);
-            return rate !== 0 ? rate : a[1] - b[1];
+            let rate = b[1] - a[1];
+            return rate >= 0 ? rate : b[0].split("_")[1].localeCompare(a[0].split("_")[1]);
         });
         return [ratings, other_classes];
     }
@@ -634,7 +658,7 @@ class UserService {
         const userData = tokenService.validateRefreshToken(refreshToken);
         const user = await UserModel.findById(userData.id);
         let today = to_day_month(dt.day) + "." + to_day_month(dt.month) + "." + dt.year;
-        let tommorow = "";
+        let tommorow;
         if (dt.weekday === 6) {
             tommorow = to_day_month((dt.day + 2)) + "." + to_day_month(dt.month) + "." + dt.year;
         } else {
@@ -644,14 +668,14 @@ class UserService {
         let sec = [];
         let Rate = 0;
         let homework = await hometaskModel.find({class: user.class, date: today});
-        if (homework)
+        if (homework) {
             for (let i in homework) {
                 let user = await UserModel.findOne({surname: homework[i]['surname']});
                 Rate += Number(user['rating']);
             }
-        if (Rate > 0)
-            Rate /= homework.length;
-
+            if (Rate > 0)
+                Rate /= homework.length;
+        }
         for (let i in homework) {
             let user = await UserModel.findOne({surname: homework[i]['surname']});
             if (homework[i]['proved'] === true || Number(user['rating']) >= Rate) {
@@ -661,14 +685,14 @@ class UserService {
         }
         sendHomework.sort();
         let homework2 = await hometaskModel.find({class: user.class, date: tommorow});
-        if (homework2)
+        if (homework2) {
             for (let i in homework2) {
                 let user = await UserModel.findOne({surname: homework2[i]['surname']});
                 Rate += Number(user['rating']);
             }
-        if (Rate > 0)
-            Rate /= homework2.length;
-
+            if (Rate > 0)
+                Rate /= homework2.length;
+        }
         for (let i in homework2) {
             let user = await UserModel.findOne({surname: homework2[i]['surname']});
             if (homework2[i]['proved'] === true || Number(user['rating']) >= Rate) {
@@ -714,9 +738,9 @@ class UserService {
 
             for (let i = 0; i < files.length - 1; i++) {
 
-                let link = await getFileLink(files[i]);
+                let link = await getFileLink('./files_from_users', files[i]);
 
-                if (link.length > 0)
+                if (link && link.length > 0)
                     links.push(link);
             }
 
@@ -732,12 +756,12 @@ class UserService {
         for (let i in subjects) {
             let taskBySub = await hometaskModel.find({class: class_, subject: subjects[i], proved: true});
             if (taskBySub.length === 1) {
-                let files = taskBySub[0]['file'];
-                let links=[];
-                for(let file in files){
-                    let link = await getFileLink(files[file]);
+                let files = taskBySub[0]['file'].split(";");
+                let links = [];
+                for (let i = 0; i < files.length - 1; i++) {
+                    let link = await getFileLink('./files_from_users', files[i]);
 
-                    if (link.length > 0)
+                    if (link && link.length > 0)
                         links.push(link);
                 }
                 hometasks[subjects[i]] = [{
@@ -755,31 +779,22 @@ class UserService {
                     let date = '';
                     let text = '';
                     let file = '';
-                    for (let i = 0; i < taskBySub.length - 1; i++) {
-                        if (taskBySub[i]['date'] === taskBySub[i + 1]['date']) {
-                            text += taskBySub[i]['text'] + " ";
-                            file += taskBySub[i]['file'];
-                            if ((i + 2) >= taskBySub.length) {
-                                date = taskBySub[i]['date'];
-                                text += taskBySub[i + 1]['text'];
-                                file += taskBySub[i]['file'];
-                                total.push({date: date, text: text, file: file});
-                            }
+                    for (let j = 0; j < taskBySub.length - 1; j++) {
+                        if (taskBySub[j]['date'] === taskBySub[j + 1]['date']) {
+                            text += taskBySub[j]['text'] + ". ";
+                            file += taskBySub[j]['file'];
                         } else {
-                            text += taskBySub[i]['text'];
-                            date = taskBySub[i]['date'];
-                            file += taskBySub[i]['file'];
+                            text += taskBySub[j]['text'];
+                            date = taskBySub[j]['date'];
+                            file += taskBySub[j]['file'];
                             total.push({date: date, text: text, file: file});
-                            if ((i + 2) >= taskBySub.length) {
-                                date = taskBySub[i + 1]['date'];
-                                text = taskBySub[i + 1]['text'];
-                                file = taskBySub[i]['file'];
-                                total.push({date: date, text: text, file: file});
-                            } else {
-                                text = '';
-                                file = '';
-                            }
+                            text = '';
+                            file = '';
                         }
+                    }
+                    if (text.length > 0 || file.length > 0) {
+                        date = taskBySub[taskBySub.length - 1]['date'];
+                        total.push({date: date, text: text, file: file});
                     }
                     let total_result = [];
                     for (let task in total) {
@@ -789,9 +804,9 @@ class UserService {
 
                         for (let i = 0; i < files.length - 1; i++) {
 
-                            let link = await getFileLink(files[i]);
+                            let link = await getFileLink('./files_from_users', files[i]);
 
-                            if (link.length > 0)
+                            if (link && link.length > 0)
                                 links.push(link);
                         }
                         total_result.push({date: total[task]['date'], text: total[task]['text'], file: links});//date subject text [links]
@@ -808,25 +823,32 @@ class UserService {
         const userData = tokenService.validateRefreshToken(refreshToken);
         const user = await UserModel.findById(userData.id);
         if (user) {
-            //subject: [teacher, classroom]
-            //["1-0", "1-2", "3-0"]
-            let teachers_id = user['teachers_id'].split("_");
-            let teachers = {};
-            for (let t in teachers_id) {
-                let teacher = teachers_id[t].split("-")[0];
-                let lesson_id = Number(teachers_id[t].split("-")[1]);
-                let getTeacher = await teacherModel.findOne({teacher_id: teacher});
-                let getTeacherLessons = getTeacher['subject'].split('_');
+            let student_id = user['_id'];
+            let query = {};
+            query[`students.${student_id}`] = {$exists: true};
 
-                teachers[getTeacherLessons[lesson_id]] = {
-                    name: ucfirst(getTeacher['surname']) + " " + ucfirst(getTeacher['name']) + " " + ucfirst(getTeacher['lastname']),
-                    classroom: getTeacher['classroom']
-                };
+            let teachers = await teacherModel.find(query);
+
+            if (teachers.length === 0) {
+                throw apiError.BadRequest("к данному ученику не были привязаны учителя, обратитесь к админу с данной проблемой.");
             }
 
-            return teachers;
+            let result = {};
+            for (let i in teachers) {
+                let Tname = ucfirst(teachers[i]['surname']) + " " + ucfirst(teachers[i]['name']) + " " + ucfirst(teachers[i]['lastname']);
+                let classroom = teachers[i]['classroom'];
+                let subjects = teachers[i]['students'][student_id];
+                for (let sub in subjects) {
+                    result[subjects[sub]] = {
+                        name: Tname,
+                        classroom: classroom
+                    };
+                }
+            }
+            //console.log(result);
+            return result;
         }
-        throw apiError.BadRequest("Статус пользователя или его класс были изменены, почистите куки(нажмите 'выйти') и попробуйте зайти снова");
+        throw apiError.BadRequest("Статус пользователя или его класс были изменены, почистите куки(нажмите 'выйти') и попробуйте зайти снова.");
     }
 
 //-------------------------------------------------ADD HOMEWORK---------------------------------------------------------
@@ -838,7 +860,7 @@ class UserService {
         }
         const isWritten = await hometaskModel.findOne({
             surname: user.surname,
-            subject: replace_(subject),
+            subject: subject,
             date: date,
         });
         if (isWritten) {
@@ -862,7 +884,7 @@ class UserService {
             surname: user.surname,
             text: homework,
             class: user.class,
-            subject: replace_(subject),
+            subject: subject,
             file: files,
             date: date,
             proved: false
@@ -873,17 +895,17 @@ class UserService {
 
 
 //-----------------------------------------------------GET DATE---------------------------------------------------------
-//подумать над переработкой, gpt привел пример, довольно интересный
     async getDate(refreshToken, subject) {
         const dt = DateTime.now();
         const week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         let indexOfDays = dt.weekday - 1;
 
+
         const userData = tokenService.validateRefreshToken(refreshToken);
         const user = await UserModel.findById(userData.id);
 
         const timetable = await timetableModel.findOne({class: user.class});
-        let dateOfMight = [];
+        let dateOfMight;
         let timetableDict = new Map();
         for (let j in week) {
             if (week[j] !== 'sunday') {
@@ -908,121 +930,47 @@ class UserService {
                 }
             }
         }
-        //console.log(dateOfMight);-------------------------------------------------------------------------------------
-        let totalDate = [];
-        let fromFtoS = week.indexOf(dateOfMight[1]) - week.indexOf(dateOfMight[0]);
-        let fromStoT = week.indexOf(dateOfMight[2]) - week.indexOf(dateOfMight[1]);
-
-        dateOfMight.reverse();
-        //console.log(dateOfMight)--------------------------------------------------------------------------------------
-        for (let day in dateOfMight) {
-            //console.log(dateOfMight[day], indexOfDays, week.indexOf(dateOfMight[day]));-------------------------------
-            if (indexOfDays > week.indexOf(dateOfMight[day])) {
-                let near = Math.min(7 - indexOfDays + week.indexOf(dateOfMight[day]), Math.abs(week.indexOf(dateOfMight[day]) - indexOfDays));
-                let index = week.indexOf(dateOfMight[day]);
-                //console.log(`index: ${index}, near: ${near}, ${dateOfMight.length}`);---------------------------------
-                switch (dateOfMight.length) {
-                    case 1:
-                        totalDate = add_to(near, near + 7, near + 14);
-                        //console.log(totalDate, " - new 1");
-                        break
-                    case 2:
-                        if (day === dateOfMight.length - 1) {
-                            fromFtoS = week.indexOf(dateOfMight[day - 1]) - index;
-                            let fromStoF = 7 - week.indexOf(dateOfMight[1]);
-                            //console.log(`near - ${near}, second - ${fromFtoS}, third - ${fromStoF}`);
-                            totalDate = add_to(near, near + fromFtoS, near + fromStoF + fromFtoS);
-                        } else {
-                            let fromStoF = 7 - index;
-                            fromFtoS = week.indexOf(dateOfMight[day + 1]) - index;
-                            totalDate = add_to(near, near + fromStoF, near + fromFtoS + fromStoF);
-                        }
-                        //console.log(totalDate, " - new 2");
-                        break
-                }
-                break;
-            }
-        }
-
-        dateOfMight.reverse()
-        fromFtoS = week.indexOf(dateOfMight[1]) - week.indexOf(dateOfMight[0]);
-        fromStoT = week.indexOf(dateOfMight[2]) - week.indexOf(dateOfMight[1]);
+        //console.log(dateOfMight);
+        let week_of_subjects = [];
         switch (dateOfMight.length) {
             case 1:
-                if (indexOfDays >= week.indexOf(dateOfMight[0])) {
-                    let date = 7 - indexOfDays + week.indexOf(dateOfMight[0]);
-                    totalDate = add_to(date, date + 7, date + 14);
-                } else {
-                    let date = week.indexOf(dateOfMight[0]) - indexOfDays;
-                    totalDate = add_to(date, date + 7, date + 14);
+                for (let i = 0; i < 3; i++) {
+                    week_of_subjects.push(dateOfMight[0]);
                 }
-                //console.log(totalDate, " - normal 1");
-                return totalDate;
+                break;
             case 2:
-                let fromStoF = 7 - week.indexOf(dateOfMight[1]) + week.indexOf(dateOfMight[0]);
-                let forThird = fromStoF + fromFtoS;
-                if (indexOfDays >= week.indexOf(dateOfMight[0])) {
-                    if (indexOfDays >= week.indexOf(dateOfMight[1])) {
-                        let forEnd = week.indexOf(dateOfMight[0]) + (7 - indexOfDays);
-                        totalDate = add_to(forEnd, forEnd + fromFtoS, forEnd + forThird);
-                    } else {
-                        let fromNowToS = week.indexOf(dateOfMight[1]) - indexOfDays;
-                        let fromNowtoS = 7 - week.indexOf(dateOfMight[1]) + week.indexOf(dateOfMight[0]);
-                        totalDate = add_to(fromNowToS, fromNowToS + fromNowtoS, fromNowToS + forThird);
-                    }
-                } else {
-                    let date = week.indexOf(dateOfMight[0]) - indexOfDays;
-                    totalDate = add_to(date, date + fromFtoS, date + forThird);
+                for (let i in dateOfMight) {
+                    week_of_subjects.push(dateOfMight[i]);
                 }
-                //console.log(totalDate, " - normal 2");
-                return totalDate;
+                week_of_subjects.push(dateOfMight[0]);
+                break;
             case 3:
-                let fromTtoF = 7 - week.indexOf(dateOfMight[2]) + week.indexOf(dateOfMight[0]);
-                if (indexOfDays >= week.indexOf(dateOfMight[0])) {
-                    if (indexOfDays >= week.indexOf(dateOfMight[1])) {
-                        if (indexOfDays >= week.indexOf(dateOfMight[2])) {
-                            let date = 7 - indexOfDays + week.indexOf(dateOfMight[0]);
-                            totalDate = add_to(date, date + fromFtoS, date + fromStoT + fromFtoS);
-                        } else {
-                            let date = week.indexOf(dateOfMight[2]) - indexOfDays;
-                            totalDate = add_to(date, date + fromTtoF, date + fromFtoS + fromTtoF);
-                        }
-                    } else {
-                        let date = week.indexOf(dateOfMight[1]) - indexOfDays;
-                        totalDate = add_to(date, date + fromStoT, date + fromTtoF + fromStoT);
-                    }
-                } else {
-                    let date = week.indexOf(dateOfMight[0]) - indexOfDays;
-                    totalDate = add_to(date, date + fromFtoS, date + fromStoT + fromFtoS);
+                for (let i in dateOfMight) {
+                    week_of_subjects.push(dateOfMight[i]);
                 }
-                return totalDate;
-            case 4:
-                let fromTtoFor = week.indexOf(dateOfMight[3]) - week.indexOf(dateOfMight[2]);
-                let fromFortoF = 7 - week.indexOf(dateOfMight[3]) + week.indexOf(dateOfMight[0]);
-                if (indexOfDays >= week.indexOf(dateOfMight[0])) {
-                    if (indexOfDays >= week.indexOf(dateOfMight[1])) {
-                        if (indexOfDays >= week.indexOf(dateOfMight[2])) {
-                            if (indexOfDays >= week.indexOf(dateOfMight[3])) {
-                                let date = 7 - indexOfDays + week.indexOf(dateOfMight[0]);
-                                totalDate = add_to(date, date + fromFtoS, date + fromStoT + fromFtoS);
-                            } else {
-                                let date = week.indexOf(dateOfMight[3]) - indexOfDays;
-                                totalDate = add_to(date, date + fromFortoF, date + fromFortoF + fromFtoS);
-                            }
-                        } else {
-                            let date = week.indexOf(dateOfMight[2]) - indexOfDays;
-                            totalDate = add_to(date, date + fromTtoFor, date + fromTtoFor + fromFortoF);
-                        }
-                    } else {
-                        let date = week.indexOf(dateOfMight[1]) - indexOfDays;
-                        totalDate = add_to(date, date + fromFtoS, date + fromStoT + fromFtoS);
-                    }
-                } else {
-                    let date = week.indexOf(dateOfMight[0]) - indexOfDays;
-                    totalDate = add_to(date, date + fromFtoS, date + fromStoT + fromFtoS);
-                }
-                return totalDate;
+                break;
+            default:
+                week_of_subjects = dateOfMight;
+                break;
         }
+        //console.log(week_of_subjects);
+
+        let check_week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        let dates = [];
+        let k = 1;
+        for (let i = indexOfDays + 1; i < check_week.length; i++) {
+            if (dates.length >= 3) {
+                break;
+            }
+            if (week_of_subjects.length > 0 && week_of_subjects.includes(check_week[i])) {
+                dates.push(k);
+                let index = week_of_subjects.indexOf(check_week[i])
+                week_of_subjects.splice(index, 1);
+            }
+            k++;
+        }
+        //console.log(dates);
+        return add_to(dates);
     }
 
 //==============================================GENERAL FUNCTIONS=======================================================
@@ -1039,7 +987,7 @@ class UserService {
             if (userData.status === user.status) {
                 if (user.ban.length > 0) {
                     if (user.ban <= date_now) {//это корректно работает?
-                        let update_user = await UserModel.updateOne({
+                        await UserModel.updateOne({
                             surname: user.surname,
                             name: user.name
                         }, {$set: {ban: ''}});
@@ -1056,18 +1004,8 @@ class UserService {
     async isChangePass(refreshToken) {
         const userData = tokenService.validateRefreshToken(refreshToken);
         const user = await UserModel.findById(userData.id);
-        if (!user.isChangePass) {
-            return false;
-        } else {
-            return true;
-        }
+        return user.isChangePass;
     }
-
-//----------------------------------------CLEAR HOMEWORK FUNCTION-------------------------------------------------------
-    //надо сделать автономной, чтобы работала на сервере вне зависимости от того, кто зашел
-    // также подумать, а что если сегодня не первый день недели, а есть записи более чем недельной записи, надо будет спросить, на неделю,
-    // это так, что вот неделю назад было, или тупо прошлую неделю
-
 
 //===================================================LEADER=============================================================
 
@@ -1075,11 +1013,12 @@ class UserService {
     async leaderNotification(refreshToken, notification) {
         const dt = DateTime.now();
         const user = await UserModel.findById(tokenService.validateRefreshToken(refreshToken).id);
-        const userData = await notificationModel.create({
-            text: notification,
-            class: user.class,
-            date: to_day_month(dt.day) + "." + to_day_month(dt.month) + "." + dt.year
-        });
+        if (!(await notificationModel.findOne({text: notification, class: user.class})))
+            await notificationModel.create({
+                text: notification,
+                class: user.class,
+                date: to_day_month(dt.day) + "." + to_day_month(dt.month) + "." + dt.year
+            });
 
         return true;
     }
@@ -1089,12 +1028,21 @@ class UserService {
     async leaderEvents(refreshToken, location, date, text) {
         let dt = date.split('-')[2] + "." + date.split('-')[1] + "." + date.split('-')[0];
         const user = await UserModel.findById(tokenService.validateRefreshToken(refreshToken).id);
-        const userData = await eventModel.create({
-            place: location,
-            text: text,
-            date: dt,
-            surname: user.surname
-        });
+        if (await eventModel.findOne({date: dt, place: location})) {
+            let lastEvent = await eventModel.findOne({date: dt, place: location});
+            await eventModel.updateOne({date: dt, place: location}, {
+                $set: {
+                    text: lastEvent.text + ". " + text.charAt(0).toUpperCase() + text.slice(1)
+                }
+            })
+        } else {
+            await eventModel.create({
+                place: location,
+                text: text,
+                date: dt,
+                surname: user.surname
+            });
+        }
         return true;
     }
 
@@ -1102,7 +1050,7 @@ class UserService {
 
 //ADD HOMETASK----------------------------------------------------------------------------------------------------------
     async leaderHomeworkAdd(data) {
-        let hometask = await hometaskModel.updateOne({
+        await hometaskModel.updateOne({
             surname: data['kok'].toLowerCase(),
             date: data['kok1'],
             subject: data['kok2']
@@ -1110,19 +1058,41 @@ class UserService {
 
         let user = await UserModel.findOne({surname: data['kok'].toLowerCase()});
         let rating = user.rating + 1;
-        let update_user = await UserModel.updateOne({surname: data['kok'].toLowerCase()}, {$set: {rating: rating}});
+        await UserModel.updateOne({surname: data['kok'].toLowerCase()}, {$set: {rating: rating}});
 
         return true;
     }
 
 //DELETE HOMETASK-------------------------------------------------------------------------------------------------------
     async leaderHomeworkDel(data) {
-        let hometask = await hometaskModel.deleteOne({
+        let ht = await hometaskModel.findOne({
             surname: data['kok'].toLowerCase(),
             date: data['kok1'],
             subject: data['kok2']
         });
-
+        if (ht) {
+            let files = ht['file'].split(';');
+            await hometaskModel.deleteOne({
+                surname: data['kok'].toLowerCase(),
+                date: data['kok1'],
+                subject: data['kok2']
+            });
+            if (files.length > 1) {
+                try {
+                    for (let i in files) {
+                        let filePath = './files_from_users/' + files[i];
+                        fs.unlink(filePath, (err) => {
+                            if (err) {
+                                console.error('файл прикрепленный к заданию не найден, но дз удалено. Ошибка при удалении файла:', err);
+                                //throw apiError.MaybeServerProblem("файл прикрепленный к заданию не найден, но дз удалено");
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
         return true;
     }
 
@@ -1131,7 +1101,7 @@ class UserService {
         let dt = DateTime.now();
         let date = to_day_month(dt.plus({days: (dt.day + 6)}).day) + "." + to_day_month(dt.plus({days: (dt.day + 6)}).month + "." + dt.plus({days: (dt.day + 6)}).year);
 
-        let hometask = await hometaskModel.deleteOne({
+        await hometaskModel.deleteOne({
             surname: data['kok'].toLowerCase(),
             date: data['kok1'],
             subject: data['kok2']
@@ -1141,14 +1111,14 @@ class UserService {
         let rating = user.rating;
 
         if (rating > 0) {
-            let update_user = await UserModel.updateOne({surname: data['kok'].toLowerCase()}, {
+            await UserModel.updateOne({surname: data['kok'].toLowerCase()}, {
                 $set: {
                     rating: (rating - 1),
                     ban: date
                 }
             });
         } else {
-            let update_user = await UserModel.updateOne({surname: data['kok'].toLowerCase()}, {
+            await UserModel.updateOne({surname: data['kok'].toLowerCase()}, {
                 $set: {
                     rating: rating,
                     ban: date
@@ -1192,7 +1162,39 @@ class UserService {
                 result.push([users[i]['surname'], users[i]['name'], users[i]['class'], users[i]['status']]);
         }
 
-        return result.sort();
+        result.sort((a, b) => {
+            if (a[0] < b[0]) {
+                return -1;
+            } else if (a[0] > b[0]) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+        return result;
+    }
+
+    async adminChangeUsersClass(surname, name, class_) {
+        let user = await UserModel.findOne({surname: surname, name: name});
+        if (user) {
+            if (await timetableModel.findOne({class: class_})) {
+                await UserModel.updateOne({surname: surname, name: name}, {
+                    $set: {class: class_}
+                })
+                return true;
+            }
+            throw apiError.BadRequest("данный класс не корректен или не найден в базе");
+        }
+        throw apiError.BadRequest("пользователь не найден..");
+    }
+
+    async adminGetUsersFile() {
+        let filePath = './files_to_parse/studentsFile.txt';
+        if (fs.existsSync(filePath)) {
+            return await getFileLink('./files_to_parse', 'studentsFile.txt');
+        } else {
+            return "none";
+        }
     }
 
 //RESET USERS'S PASSWORD------------------------------------------------------------------------------------------------
@@ -1206,11 +1208,10 @@ class UserService {
         });
 
         let userToken = await tokenService.findUserById(id[0]['id']);
-        let tokenDel = '';
-        if (userToken !== null)
-            tokenDel = await tokenService.removeToken(userToken);
+        if (userToken)
+            await tokenService.removeToken(userToken);
 
-        let user = await UserModel.updateOne({
+        await UserModel.updateOne({
             surname: surname,
             name: name,
             class: class_
@@ -1234,14 +1235,12 @@ class UserService {
         });
         if (id.length > 0) {
             let userToken = await tokenService.findUserById(id[0]['id']);
-            let tokenDel = '';
             if (userToken !== null)
-                tokenDel = await tokenService.removeToken(userToken);
+                await tokenService.removeToken(userToken);
 
         }
-        if (del['acknowledged'] === true)
-            return true;
-        return false;
+        return del['acknowledged'] === true;
+
     }
 
 //CHANGE USER'S STATUS--------------------------------------------------------------------------------------------------
@@ -1266,13 +1265,60 @@ class UserService {
 
         let userToken = await tokenService.findUserById(id[0]['id']);
 
-        let tokenDel = '';
-        if (userToken !== null)
-            tokenDel = await tokenService.removeToken(userToken);
 
-        if (user['acknowledged'] === true)
-            return true;
-        return false;
+        if (userToken !== null)
+            await tokenService.removeToken(userToken);
+
+        return user['acknowledged'] === true;
+
+    }
+
+    async adminAddListOfStudents(file) {
+        //console.log(file, file['filename'])
+        let workbook = xlsx.readFile('./files_to_parse/' + file['filename']);
+        let students = []
+        //получаем данные
+        for (const sheetName of workbook.SheetNames) {
+            let rows = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+            //console.log(rows);
+            for (let row in rows) {
+                let class_ = rows[row]['класс'];
+                let numbers = "";
+                let letters = "";
+                for (let i in class_) {
+                    if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(class_[i])) {
+                        numbers += class_[i];
+                    } else {
+                        letters += class_[i];
+                    }
+                }
+                class_ = numbers + "_" + letters.toUpperCase();
+                let name = rows[row]['имя'].toLowerCase();
+                let surname = rows[row]['фамилия'].toLowerCase();
+                let status = 'student';
+                let pas = generatePass();
+                await this.adminAddClass(class_);
+                let isReg = await this.registration(name.trim(), surname.trim(), class_.trim(), pas, status);
+                if (isReg !== null) {
+                    students[surname] = pas;
+                }
+            }
+        }
+        //создаем файл
+        fs.writeFile('./files_to_parse/studentsFile.txt', "фамилия(логин) - пароль \n", (err) => {
+            if (err) throw apiError.BadRequest();
+            //console.log("file was create");
+        });
+
+        for (let student in students) {
+            fs.appendFile('./files_to_parse/studentsFile.txt', student + " - " + students[student] + "\n", (err) => {
+                if (err) throw apiError.BadRequest();
+            })
+        }
+
+        let fileDir = './files_to_parse';
+        return await getFileLink(fileDir, "studentsFile.txt");
+
     }
 
 //---------------------------------------------------ADD USER MODAL-----------------------------------------------------
@@ -1289,7 +1335,6 @@ class UserService {
         let timetable = await timetableModel.findOne({class: class_});
 
         let result = new Map();
-        let mass = [];
 
         for (let i in week) {
             let mass = timetable[week[i]].replaceAll(")", " ").split(" ");
@@ -1331,9 +1376,8 @@ class UserService {
 //DELETE SUBJECT--------------------------------------------------------------------------------------------------------
     async adminModalDelSubject(subject) {
         let sub = await subjectModel.deleteOne({subject: subject});
-        if (sub['acknowledged'] === true)
-            return true;
-        return false;
+        return sub['acknowledged'] === true;
+
     }
 
 //CHANGE TIMETABLE BY CLASS---------------------------------------------------------------------------------------------
@@ -1361,43 +1405,38 @@ class UserService {
         }, {
             $set: updateObj
         });
-        if (update['acknowledged'] === true)
-            return true;
-        return false;
+        return update['acknowledged'] === true;
+
     }
 
 //ADD NEW CLASS---------------------------------------------------------------------------------------------------------
     async adminAddClass(class_) {
+        //console.log(class_, "------");
         let number = "";
         let letter = "";
         for (let i in class_) {
-            if ('234567'.includes(class_[i])) {
-                return false;
+            if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(class_[i])) {
+                number += class_[i];
             } else {
-                if (class_[i] === '1' || class_[i] === '8' || class_[i] === '9' || class_[i] === '0') {
-                    number += class_[i];
-                } else {
+                if (class_[i].toLowerCase() !== class_[i].toUpperCase()) {
                     letter += class_[i].toUpperCase();
                 }
             }
         }
-        if (7 < Number(number) && Number(number) < 12 && letter.length === 1) {
-            if (await timetableModel.findOne({class: number + "_" + letter})) {
-                return false;
-            } else {
-                await timetableModel.create({
-                    class: number + "_" + letter,
-                    monday: "1)- 2)- 3)- 4)- 5)- 6)- 7)-",
-                    tuesday: "1)- 2)- 3)- 4)- 5)- 6)- 7)-",
-                    wednesday: "1)- 2)- 3)- 4)- 5)- 6)- 7)-",
-                    thursday: "1)- 2)- 3)- 4)- 5)- 6)- 7)-",
-                    friday: "1)- 2)- 3)- 4)- 5)- 6)- 7)-",
-                    saturday: "1)- 2)- 3)- 4)- 5)- 6)- 7)-"
-                });
-                return true;
-            }
-        } else {
+        //console.log(number + "_" + letter, " ---- Cl");
+        if (await timetableModel.findOne({class: number + "_" + letter.toUpperCase()})) {
             return false;
+        } else {
+            await timetableModel.create({
+                class: number + "_" + letter.toUpperCase(),
+                monday: "1)- 2)- 3)- 4)- 5)- 6)- 7)-",
+                tuesday: "1)- 2)- 3)- 4)- 5)- 6)- 7)-",
+                wednesday: "1)- 2)- 3)- 4)- 5)- 6)- 7)-",
+                thursday: "1)- 2)- 3)- 4)- 5)- 6)- 7)-",
+                friday: "1)- 2)- 3)- 4)- 5)- 6)- 7)-",
+                saturday: "1)- 2)- 3)- 4)- 5)- 6)- 7)-"
+            });
+            return true;
         }
     }
 
@@ -1454,7 +1493,7 @@ class UserService {
 //ADD NOTIFICATION FOR ALL----------------------------------------------------------------------------------------------
     async adminAddNotify(text) {
         const dt = DateTime.now();
-        const userData = await notificationModel.create({
+        await notificationModel.create({
             text: text,
             class: "all",
             date: to_day_month(dt.day) + "." + to_day_month(dt.month) + "." + dt.year
@@ -1465,34 +1504,399 @@ class UserService {
 
 //---------------------------------------------TEACHER PAGE-------------------------------------------------------------
 
+//---------------------------------------------GET TEACHERS-------------------------------------------------------------
+    async adminGetAllTeachers() {
+        let teachers = await teacherModel.find();
+        let result = [];
+        for (let i in teachers) {
+            result.push({
+                surname: teachers[i]['surname'],
+                name: teachers[i]['name'],
+                lastname: teachers[i]['lastname'],
+                classroom: teachers[i]['classroom']
+            });
+        }
+
+        result.sort((a, b) => {
+            if (a.surname < b.surname) {
+                return -1;
+            } else if (a.surname > b.surname) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+        return result;
+    }
+
 //-------------------------------------------ADD NEW TEACHER------------------------------------------------------------
     async adminAddNewTeacher(name, surname, lastname, subject, classroom) {
-        console.log(name, surname, lastname, subject, classroom);
-        if (await teacherModel.findOne({name: name, surname: surname, lastname: lastname, subject: subject}))
+        if (await teacherModel.findOne({name: name, surname: surname, lastname: lastname}))
             return null;
-        let lastTeacher = await teacherModel.find();
-        let getLastId = 0;
-        if (lastTeacher.length > 0)
-            getLastId = Number(lastTeacher[lastTeacher.length - 1]['teacher_id']);
-        let teacher_id = (getLastId + 1).toString();
 
-        const teacher = await teacherModel.create({
+        return await teacherModel.create({
             name: name,
             surname: surname,
             lastname: lastname,
-            subject: subject,
+            subjects: subject,
             classroom: classroom,
-            teacher_id: teacher_id
         });
-        return teacher;
+    }
+
+    async adminDeleteTeacher(teacher) {
+        let surname = teacher.split(" ")[0];
+        let name = teacher.split(" ")[1];
+        let lastname = teacher.split(" ")[2];
+
+        if (await teacherModel.findOne({name: name, surname: surname, lastname: lastname})) {
+            await teacherModel.deleteOne({name: name, surname: surname, lastname: lastname});
+            return true;
+        }
+        return false;
+    }
+
+    async adminTeacherFind(surname) {
+        let teachers_search = await teacherModel.find({surname: surname});
+        let teachers_result = [];
+        if (teachers_search) {
+            for (let i in teachers_search) {
+                teachers_result.push([teachers_search[i].surname, teachers_search[i].name, teachers_search[i].lastname, teachers_search[i].classroom]);
+            }
+            return teachers_result;
+        }
+        return teachers_result.push(["none"]);
+    }
+
+//----------------------------------------GET ALL TEACHER'S SUBJECT-----------------------------------------------------
+    async adminGetTeachSubjects(teacher) {
+        let surname = teacher.split(" ")[0];
+        let name = teacher.split(" ")[1];
+        let lastname = teacher.split(" ")[2];
+        let thisTeacher = await teacherModel.findOne({surname: surname, name: name, lastname: lastname});
+
+        return thisTeacher['subjects'];
+    }
+
+    async adminGetSubjects(teacher) {
+        let surname = teacher.split(" ")[0];
+        let name = teacher.split(" ")[1];
+        let lastname = teacher.split(" ")[2];
+        let thisTeacher = await teacherModel.findOne({surname: surname, name: name, lastname: lastname});
+        let all_subjects = await subjectModel.find();
+        let teacher_subjects = thisTeacher['subjects'];
+        let result = [];
+        for (let i in all_subjects) {
+            if (!(all_subjects[i]['subject'].includes("/"))) {
+                if (!(teacher_subjects.includes(all_subjects[i]['subject']))) {
+                    result.push(all_subjects[i]['subject']);
+                }
+            } else {
+                if (!teacher_subjects.includes(all_subjects[i]['subject'].split("/")[0])) {
+                    result.push(all_subjects[i]['subject'].split("/")[0]);
+                }
+                if (!teacher_subjects.includes(all_subjects[i]['subject'].split("/")[1])) {
+                    result.push(all_subjects[i]['subject'].split("/")[1]);
+                }
+            }
+        }
+
+        return result.sort();
+    }
+
+    async adminAddSubjectToTeacher(teacher, subject) {
+        let surname = teacher.split(" ")[0];
+        let name = teacher.split(" ")[1];
+        let lastname = teacher.split(" ")[2];
+        let thisTeacher = await teacherModel.findOne({surname: surname, name: name, lastname: lastname});
+        thisTeacher['subjects'].push(subject);
+        await teacherModel.updateOne({
+            name: name,
+            surname: surname,
+            lastname: lastname
+        }, {$set: {subjects: thisTeacher['subjects']}});
+
+        return "ok";
+    }
+
+    async adminDelSubjectToTeacher(teacher, subject) {
+        let surname = teacher.split(" ")[0];
+        let name = teacher.split(" ")[1];
+        let lastname = teacher.split(" ")[2];
+        let thisTeacher = await teacherModel.findOne({surname: surname, name: name, lastname: lastname});
+        thisTeacher['subjects'] = thisTeacher['subjects'].filter((e) => e !== subject);
+
+        await teacherModel.updateOne({
+            name: name,
+            surname: surname,
+            lastname: lastname
+        }, {$set: {subjects: thisTeacher['subjects']}});
+
+        return "ok";
+    }
+
+//--------------------------------------GET ALL STUDENTS FOR TEACHER----------------------------------------------------
+    async adminGetTeachersStudents(class_, teacher, subject) {
+        let surname = teacher.split(" ")[0];
+        let name = teacher.split(" ")[1];
+        let lastname = teacher.split(" ")[2];
+        //console.log(surname);
+        let teachers_data = await teacherModel.findOne({surname: surname, name: name, lastname: lastname});
+        let students_id = teachers_data['students'];
+        let students = [];
+        if (class_ === 'all') {
+            for (let [key, value] of Object.entries(students_id)) {
+                if (value.includes(subject)) {
+                    let student = await UserModel.findById(key);
+                    if (student)
+                        students.push([student['surname'], student['name'], student['class']]);
+                }
+            }
+        } else {
+            for (let [key, value] of Object.entries(students_id)) {
+                if (value.includes(subject)) {
+                    let student = await UserModel.findById(key);
+                    if (student['class'] === class_)
+                        students.push([student['surname'], student['name'], student['class']]);
+                }
+            }
+        }
+        return students;
+    }
+
+//----------------------------------------FIND STUDENT FOR TEACHER------------------------------------------------------
+    async adminTeacherFindStudent(surname, teacher, subject) {
+        let stud = await UserModel.findOne({surname: surname});
+        let Tsurname = teacher.split(" ")[0];
+        let Tname = teacher.split(" ")[1];
+        let Tlastname = teacher.split(" ")[2];
+        let teach = await teacherModel.findOne({surname: Tsurname, name: Tname, lastname: Tlastname});
+        let result = [];
+        if (stud !== null) {
+            for (let [key, value] of Object.entries(teach['students'])) {
+                if (key === stud['_id'].toString() && value.includes(subject)) {
+                    result.push([stud['surname'], stud['name'], stud['class'], "yes"]);
+                    return result;
+                }
+            }
+            result.push([stud['surname'], stud['name'], stud['class'], "no"]);
+            return result;
+        } else {
+            result.push(["no"]);
+            return result;
+        }
+    }
+
+
+//-------------------------------------------ADD STUDENT FOR TEACHER----------------------------------------------------
+    async adminAddStudentForTeacher(student, teacher, subject) {
+
+        let Tsurname = teacher.split(" ")[0];
+        let Tname = teacher.split(" ")[1];
+        let Tlastname = teacher.split(" ")[2];
+
+        let Sname = student.split(" ")[1];
+        let Ssurname = student.split(" ")[0];
+        let student_id = await UserModel.findOne({name: Sname, surname: Ssurname});
+        student_id = student_id['_id'];
+        if (!student_id) {
+            throw apiError.MaybeServerProblem("ученик не найден");
+        }
+        let teacherObj = await teacherModel.findOne({name: Tname, surname: Tsurname, lastname: Tlastname});
+        let students = teacherObj['students'] || {};
+
+        let query = {};
+        query[`students.${student_id}`] = {$in: [subject]};
+
+        let teachers = await teacherModel.findOne(query);
+        if (students[student_id]) {
+            if (!(students[student_id].includes(subject))) {
+                if (teachers) {
+                    let teacher_has_stud_students = teachers['students'];
+                    teacher_has_stud_students[student_id] = teacher_has_stud_students[student_id].filter((e) => e !== subject);
+                    await teacherModel.updateOne({
+                        surname: teachers['surname'],
+                        name: teachers['name'],
+                        lastname: teachers['lastname']
+                    }, {
+                        $set: {students: teacher_has_stud_students}
+                    })
+                }
+                students[student_id].push(subject);
+            } else {
+                return "данный ученик уже обучается у текущего преподавателя";
+            }
+        } else {
+            students[student_id] = [subject];
+        }
+
+        await teacherModel.updateOne({
+            name: Tname,
+            surname: Tsurname,
+            lastname: Tlastname
+        }, {$set: {students: students}});
+
+
+        return "ok";
+    }
+
+    async adminDelStudentForTeacher(student, teacher, subject) {
+        let Tsurname = teacher.split(" ")[0];
+        let Tname = teacher.split(" ")[1];
+        let Tlastname = teacher.split(" ")[2];
+
+        let Sname = student.split(" ")[1];
+        let Ssurname = student.split(" ")[0];
+        let student_id = await UserModel.findOne({name: Sname, surname: Ssurname});
+        student_id = student_id['_id'];
+        if (!student_id) {
+            throw apiError.MaybeServerProblem("ученик не найден");
+        }
+        let teacherObj = await teacherModel.findOne({name: Tname, surname: Tsurname, lastname: Tlastname});
+        let students = teacherObj['students'] || {};
+
+        if (students[student_id]) {
+            if ((students[student_id].includes(subject))) {
+                students[student_id] = students[student_id].filter((e) => e !== subject);
+                if (students[student_id].length > 0) {
+                    await teacherModel.updateOne({
+                        name: Tname,
+                        surname: Tsurname,
+                        lastname: Tlastname
+                    }, {$set: {students: students}});
+                } else {
+                    delete students[student_id];
+                    await teacherModel.updateOne({
+                        name: Tname,
+                        surname: Tsurname,
+                        lastname: Tlastname
+                    }, {$set: {students: students}});
+                }
+            } else {
+                return "преподавателя не преподает у данного ученика этот предмет";
+            }
+        } else {
+            return "данный ученик не обучается у текущего преподавателя";
+        }
+
+
+        return "ok";
+    }
+
+    async adminAddClassForTeacher(class_, teacher, subject) {
+        let Tsurname = teacher.split(" ")[0];
+        let Tname = teacher.split(" ")[1];
+        let Tlastname = teacher.split(" ")[2];
+        let students;
+        if (class_ !== "all")
+            students = await UserModel.find({class: class_});
+        else {
+            students = await UserModel.find();
+        }
+        if (!students) {
+            throw apiError.MaybeServerProblem("класс пуст ");// это скорее уведомление, чем ошибка
+        }
+        let teacherObj = await teacherModel.findOne({name: Tname, surname: Tsurname, lastname: Tlastname});
+        let teacher_students = teacherObj['students'] || {};
+
+        for (let i in students) {
+            if (teacher_students[students[i]['_id']]) {
+                if (!teacher_students[students[i]['_id']].includes(subject)) {
+                    teacher_students[students[i]['_id']].push(subject);
+                }
+            } else {
+                teacher_students[students[i]['_id']] = [subject];
+            }
+        }
+
+        await teacherModel.updateOne({
+            name: Tname,
+            surname: Tsurname,
+            lastname: Tlastname
+        }, {$set: {students: teacher_students}});
+
+
+        return "ok";
+    }
+
+    async adminAddListOfTeachers(file) {
+        //сначала считывание и запись в массив
+        // [ класс -> [ предмет -> [ учитель -> "кабинет" ] ] ]
+        // если учитель для предмета и класса один, то добавляем весь класс к этому преподу и вдальнейшем..
+        // иначе просто добавить препода и все
+        let workbook = xlsx.readFile('./files_to_parse/' + file['filename']);
+        let teachers = []
+        let classrooms = {};
+        //получаем данные
+        for (const sheetName of workbook.SheetNames) {
+            let rows = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+            for (let row in rows) {
+                let class_ = rows[row]['класс'].toLowerCase();
+                let teacher = rows[row]['ФИО'].toLowerCase();
+                let subject = rows[row]['предмет'].toLowerCase();
+                let classroom = rows[row]['кабинет'];
+
+                if (!teachers[class_]) {
+                    teachers[class_] = {};
+                }
+                if (!teachers[class_][subject]) {
+                    teachers[class_][subject] = [];
+                }
+                if (!(teachers[class_][subject].includes(teacher))) {
+                    teachers[class_][subject].push(teacher);
+                    classrooms[teacher] = classroom;
+                }
+            }
+        }
+
+        //нужно чтобы препод добавлялся и предмет вместе с ним если что
+
+        for (let c in teachers) {
+            let class_;
+            let letters = "";
+            let numbers = "";
+            for (let i in c) {
+                if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(c[i])) {
+                    numbers += c[i];
+                } else {
+                    letters += c[i];
+                }
+            }
+            class_ = numbers + "_" + letters.toUpperCase();
+            let sub = teachers[c];
+            for (let s in sub) {
+                let subject = s;
+                let teachers_for_sub = sub[s];
+                if (teachers_for_sub.length === 1) {
+                    let surname = teachers_for_sub[0].split(" ")[0].toLowerCase();
+                    let name = teachers_for_sub[0].split(" ")[1].toLowerCase();
+                    let lastname = teachers_for_sub[0].split(" ")[2].toLowerCase();
+                    let classroom = classrooms[teachers_for_sub[0]];
+                    await this.adminAddNewTeacher(name, surname, lastname, subject, classroom);
+                    await this.adminAddSubject(subject);
+                    await this.adminAddClassForTeacher(class_, teachers_for_sub[0], subject);
+                } else {
+                    for (let t in teachers_for_sub) {
+                        let surname = teachers_for_sub[t].split(" ")[0].toLowerCase();
+                        let name = teachers_for_sub[t].split(" ")[1].toLowerCase();
+                        let lastname = teachers_for_sub[t].split(" ")[2].toLowerCase();
+                        let classroom = classrooms[teachers_for_sub[t]];
+                        await this.adminAddSubject(subject);
+                        await this.adminAddNewTeacher(name, surname, lastname, subject, classroom);
+                    }
+                }
+            }
+        }
+
+        return "ok";
+
     }
 
 //====================================================TIMETABLE=========================================================
 
 //---------------------------------------------TIMETABLE REGISTRATION---------------------------------------------------
     async timetable_r(class_, monday, tuesday, wednesday, thursday, friday, saturday) {
-        const isExist = await timetableModel.findOne({class: class_});
-        const userData = await timetableModel.create({
+
+        return await timetableModel.create({
             class: class_,
             monday: monday,
             tuesday: tuesday,
@@ -1501,7 +1905,6 @@ class UserService {
             friday: friday,
             saturday: saturday
         });
-        return userData;
     }
 
 //-----------------------------------------------GET TIMETABLE----------------------------------------------------------

@@ -1,6 +1,4 @@
 const tokenService = require('../service/token-service');
-const path = require("path");
-const createPath = (page) => path.resolve(__dirname, '../views', `${page}.ejs`);
 
 module.exports = function (req, res, next) {
     try {

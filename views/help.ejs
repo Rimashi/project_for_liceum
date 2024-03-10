@@ -39,6 +39,7 @@
                         <div class="information-block__information-img-1 information-img-1">
                             <img src="img/help/timetable.png" alt="Расписание"
                                  class="_img-information" style="height: 500px;max-width:none">
+                            <!--добавить проверку с какого устройства сидит пользователь, через ксс скорее всего-->
                         </div>
                         <div class="information-block__information-text information-text">
                             Итак, вы зашли на страницу с расписанием. Слева - расписание звонков обычное и сокращенное
@@ -82,6 +83,21 @@
                                 данный блок, и вы сможете задать новые логин и пароль.
 
                             </div>
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h2 class="information-block__title-information title-information">Возможные ошибки</h2>
+                        <div class="information-block__information-text information-text">
+                            К сожалению, бывает так, что что-то ломается или недоступно, тогда у вас появляется страница
+                            с ошибкой, зачастую там будет написано, что вы сделали не так.
+                            Однако, если вы видите, что поля подчеркиваются красным, а вы не можете зайти, это не
+                            ошибка, проверьте, что вы не ошибаетесь и ввели свои данные правильно!
+
+                            Если вы увидели 500 ошибку, то обратитесь к нам за помощью, мы постараемся вам помочь,
+                            просто нажмите на кнопку и перейдите в телеграмм, там вам помогут. Если найдете какой-либо
+                            баг, тоже будем рады, если сообщите.<br><br>
+                            На этом все, удачного пользования.
+
                         </div>
                     </div>
                 </div>
@@ -194,42 +210,42 @@
                                 поле.
                             </div>
                         </div>
-                        <div class="information-blocks__information-block information-block-full">
-                            <h2 class="information-block__title-information title-information">Модальное окно “Создать
-                                событие”</h2>
-                            <div class="information-block__information-text information-text">
-                                <div class="information-text__information-img-2 information-img-2">
-                                    <img src="img/help/event.png" alt="добавление события"
-                                         class="_img-information"
-                                         style="height: 200px;max-width:none">
-                                </div>
-                                <div class="information-block__information-text information-text">Вы решили создать
-                                    событие, давайте рассмотрим как это делать.
-                                    <br>
-                                    У вас есть три поля:
-                                    <ol class="information-text__information-list information-list">
-                                        <li class="information-list__quest">
-                                            “Место проведения” - место, где будет проходить мероприятие/событие.
-                                        </li>
-                                        <li class="information-list__quest">
-                                            “Дата проведения” - когда будет проходить данное мероприятие/событие.
-                                        </li>
-                                        <li class="information-list__quest">
-                                            “Событие” - описание самого события.
-                                        </li>
-                                        <li class="information-list__quest">
-                                            Если вы пользовались netschool, то считайте это аналогом объявлений.
-                                        </li>
-                                        <li class="information-list__quest">
-                                            Если какое-либо из полей окрашивается в красный цвет(по контуру), то значит
-                                            вы не заполнили данное поле.
-                                        </li>
-                                        <li class="information-list__quest">
-                                            Если вы ошиблись или просто хотите удалить событие, написанное вами, то
-                                            попросите админа удалить событие.
-                                        </li>
-                                    </ol>
-                                </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h2 class="information-block__title-information title-information">Модальное окно “Создать
+                            событие”</h2>
+                        <div class="information-block__information-text information-text">
+                            <div class="information-text__information-img-2 information-img-2">
+                                <img src="img/help/event.png" alt="добавление события"
+                                     class="_img-information"
+                                     style="height: 200px;max-width:none">
+                            </div>
+                            <div class="information-block__information-text information-text">Вы решили создать
+                                событие, давайте рассмотрим как это делать.
+                                <br>
+                                У вас есть три поля:
+                                <ol class="information-text__information-list information-list">
+                                    <li class="information-list__quest">
+                                        “Место проведения” - место, где будет проходить мероприятие/событие.
+                                    </li>
+                                    <li class="information-list__quest">
+                                        “Дата проведения” - когда будет проходить данное мероприятие/событие.
+                                    </li>
+                                    <li class="information-list__quest">
+                                        “Событие” - описание самого события.
+                                    </li>
+                                    <li class="information-list__quest">
+                                        Если вы пользовались netschool, то считайте это аналогом объявлений.
+                                    </li>
+                                    <li class="information-list__quest">
+                                        Если какое-либо из полей окрашивается в красный цвет(по контуру), то значит
+                                        вы не заполнили данное поле.
+                                    </li>
+                                    <li class="information-list__quest">
+                                        Если вы ошиблись или просто хотите удалить событие, написанное вами, то
+                                        попросите админа удалить событие.
+                                    </li>
+                                </ol>
                             </div>
                         </div>
                     </div>
@@ -260,8 +276,23 @@
                                 <li class="information-list__quest">4. Сколько в классе может быть модераторов?</li>
                                 <p class="information-list__answer">- Сколько угодно.</p>
 
-                                <li class="information-list__quest">5. Мы не несем ответственности за скаченные файлы с
-                                    нашего сайта. Если файл имеет странное/необычное/некорректное содержание или
+                                <li class="information-list__quest">5. Почему я пытаюсь добавить файл, а он не
+                                    добавляется?
+                                </li>
+                                <p class="information-list__answer">- Вероятно ваш файл имеет расширение, которое не
+                                    поддерживает наш сайт или вы добавлете больше 3 файлов (некоторые исполняемые файлы,
+                                    такие как ".py" или ".js", не могут быть добавлены из-за ограничения
+                                    инструментов).</p>
+
+                                <li class="information-list__quest">6. Почему задание с файлом, которое я добавил, не
+                                    отображается?
+                                </li>
+                                <p class="information-list__answer">- Потому что вам нужно, чтобы задание сначала
+                                    проверил модератор. Это сделано для того, чтобы минимизировать распространение
+                                    "плохих".</p>
+
+                                <li class="information-list__quest">7. Мы не несем ответственности за скаченные файлы с
+                                    нашего сайта. Если файл имеет странное, необычное, некорректное содержание или
                                     является вредоносным, просим сообщить об этом администратору, он сможет сказать, кто
                                     отправил данный файл.
                                 </li>
@@ -269,22 +300,6 @@
 
                         </div>
                     </div>
-                    <div class="information-blocks__information-block information-block-full">
-                        <h2 class="information-block__title-information title-information">Возможные ошибки</h2>
-                        <div class="information-block__information-text information-text">
-                            К сожалению, бывает так, что что-то ломается или недоступно, тогда у вас появляется страница
-                            с ошибкой, зачастую там будет написано, что вы сделали не так.
-                            Однако, если вы видите, что поля подчеркиваются красным, а вы не можете зайти, это не
-                            ошибка, проверьте, что вы не ошибаетесь и ввели свои данные правильно!
-
-                            Если вы увидели 500 ошибку, то обратитесь к нам за помощью, мы постараемся вам помочь,
-                            просто нажмите на кнопку и перейдите в телеграмм, там вам помогут. Если найдете какой-либо
-                            баг, тоже будем рады, если сообщите.<br><br>
-                            На этом все, удачного пользования.
-
-                        </div>
-                    </div>
-
                 </div>
             </div>
         </div>

@@ -37,7 +37,7 @@
                     <% } %>
                     <div class="left-block-user__leader-notice leader-notice">
                         <h2 class="leader-notice__title-leader-notice">Уведомление от старост</h2>
-                        <% if (notification !== "none" && notification.length != 0){ %>
+                        <% if (notification !== "none" && notification.length !== 0){ %>
                             <% for (let i in notification){ %>
                                 <div class="leader-notice__list-leader-notice list-leader-notice">
                                     <div class="list-leader-notice__leader-notice">
@@ -47,24 +47,25 @@
                         <% }} %>
                     </div>
                     <div class="left-block-user__hometask-for-days hometask-for-days">
-                        <h2 class="hometask-for-days__title-hometask-for-days">Дз на близжайшие дни</h2>
+                        <h2 class="hometask-for-days__title-hometask-for-days">Дз на ближайшие дни</h2>
                         <div class="hometask-for-days__list-hometask-for-days list-hometask-for-days">
                             <% if (homework !== "none") { %>
                                 <% for(let i = 0;i < homework.length;i++){ %>
                                     <div class="hometask-for-days__hometask-for-day hometask-for-day">
-                                        <div class="hometask-for-day__date"><%= homework[i][0] %></div>
-                                        <div class="hometask-for-day__subject"><%= homework[i][1] %></div>
+                                        <div class="hometask-for-day__date"><%= homework[i][0].split(".")[0] + "." + homework[i][0].split(".")[1] %></div>
+                                        <div class="hometask-for-day__subject"><%= homework[i][1].charAt(0).toUpperCase() + homework[i][1].slice(1).replaceAll("_", " ") %></div>
                                         <div class="hometask-for-day__task"><%= homework[i][2] %></div>
                                         <% let fileSt = '' %>
                                         <% for(let file in homework[i][3]){ %>
-                                            <% if((Number(file) + 1) === homework[i][3].length){
+                                            <% if ((Number(file) + 1) === homework[i][3].length) {
                                                 fileSt += homework[i][3][file];
-                                            }else{
+                                            } else {
                                                 fileSt += homework[i][3][file] + ":";
                                             } %>
                                         <% } %>
                                         <% if (fileSt.length > 0){ %>
-                                            <button id="download" value="<%= fileSt %>" class="hometask-for-day__download"></button>
+                                            <button id="download" value="<%= fileSt %>"
+                                                    class="hometask-for-day__download"></button>
                                         <% } %>
                                     </div>
                             <% } } %>

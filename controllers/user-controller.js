@@ -1,10 +1,11 @@
 const userService = require('../service/user-service');
-const {validationResult, body} = require('express-validator');
+const {validationResult} = require('express-validator');
 const path = require("path");
 const tokenService = require('../service/token-service');
 const UserModel = require("../models/user-model");
 const apiError = require("../dtos/api-error");
 const fs = require('fs');
+
 
 const createPath = (page) => path.resolve(__dirname, '../views', `${page}.ejs`);
 
@@ -66,7 +67,6 @@ class UserController {
             const {name, surname, class_, pass, status} = req.body;
             console.log(name, surname, pass, class_, status);
             const userData = await userService.registration(name, surname, class_, pass, status);
-            // res.cookie('refreshToken', userData.refreshToken, {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true});
             return res.json(userData);
         } catch (e) {
             next(e);
@@ -81,7 +81,7 @@ class UserController {
             console.log(data);
             if (refreshToken) {
                 const user = await userService.user(refreshToken);
-                let updateUser = await userService.changeLogPass(data['login'], data['pass'], user);
+                await userService.changeLogPass(data['login'], data['pass'], user);
             }
             return res.redirect('/');
 
@@ -121,8 +121,7 @@ class UserController {
     async logout(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
-            const token = await userService.logout(refreshToken);
-            //console.log(`token - ${token}, refresh - ${refreshToken}`);
+            await userService.logout(refreshToken);
             res.clearCookie('refreshToken');
             res.clearCookie('accessToken');
             return res.redirect('/');
@@ -325,6 +324,7 @@ class UserController {
             next(e);
         }
     }
+
 //=================================================INDEX================================================================
     async indexPage(req, res, next) {
         try {
@@ -359,7 +359,7 @@ class UserController {
             const user = await userService.user(refreshToken);
             if (user !== "changed status") {
                 if (refreshToken) {
-                    const notify = await userService.getNotification(user.class);
+                    await userService.getNotification(user.class);
                     if (user.status !== "student")
                         return res.redirect(createPath('index'));
 
@@ -393,10 +393,10 @@ class UserController {
     async studentModalDate(req, res, next) {
         try {
             const {refreshToken} = req.cookies;
-            const surname = await userService.user(refreshToken);
-            const data = req.query;// почему здесь работает query, но не работает body
+            await userService.user(refreshToken);
+            const data = req.query;
             let subject = data['subject'];
-            //console.log(data, subject);
+            console.log(data, subject);
             let date = await userService.getDate(refreshToken, subject);
             return res.json({dates: date});
         } catch (e) {
@@ -437,26 +437,25 @@ class UserController {
 
     async downloadFile(req, res, next) {
         try {
-            const filenames = req.params.filename.split(':').map(decodeURIComponent);
-            const filesDir = './files_from_users';
+            const filesParam = decodeURIComponent(req.params.filename);
+            const filesDir = "./" + filesParam.split("\\")[0];
+            const filename = filesParam.split("\\")[1];
 
-            res.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(filenames.join(':'))}`);
+            const filePath = path.join(filesDir, filename);
+            const fileStream = fs.createReadStream(filePath);
+
+            res.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(filename)}`);
             res.setHeader('Content-Type', 'application/octet-stream');
 
-            for (const filename of filenames) {
-                const filePath = path.join(filesDir, filename);
-                const fileStream = fs.createReadStream(filePath);
-
-                await new Promise((resolve, reject) => {
-                    fileStream.on('end', resolve);
-                    fileStream.on('error', reject);
-                    fileStream.pipe(res, {end: false});
-                });
-            }
+            await new Promise((resolve, reject) => {
+                fileStream.on('end', resolve);
+                fileStream.on('error', reject);
+                fileStream.pipe(res, {end: false});
+            });
 
             res.end();
-        } catch (e) {
-            console.error(e);
+        } catch (error) {
+            console.error(error);
             next(apiError.MaybeServerProblem('Произошла ошибка при скачивании файлов'));
         }
     }
@@ -471,7 +470,7 @@ class UserController {
             const user = await userService.user(refreshToken);
             if (user !== "changed status") {
                 if (refreshToken) {
-                    const notify = await userService.getNotification(user.class);
+                    await userService.getNotification(user.class);
 
                     if (user.status !== "leader")
                         return res.redirect(createPath('index'));
@@ -495,7 +494,7 @@ class UserController {
         try {
             const {refreshToken} = req.cookies;
             let data = req.body;
-            let notify = await userService.leaderNotification(refreshToken, data['notify']);
+            await userService.leaderNotification(refreshToken, data['notify']);
 
             return res.redirect('/');
 
@@ -510,7 +509,7 @@ class UserController {
         try {
             const {refreshToken} = req.cookies;
             let data = req.body;
-            let eventAdd = await userService.leaderEvents(refreshToken, data['place'], data['date'], data['text']);
+            await userService.leaderEvents(refreshToken, data['place'], data['date'], data['text']);
 
             return res.redirect('/');
 
@@ -538,7 +537,7 @@ class UserController {
     async leaderModalAdd(req, res, next) {
         try {
             let data = req.body;
-            let userData = await userService.leaderHomeworkAdd(data);
+            await userService.leaderHomeworkAdd(data);
             return res.redirect('/');
         } catch (e) {
             next(e);
@@ -549,7 +548,7 @@ class UserController {
     async leaderModalDel(req, res, next) {
         try {
             let data = req.body;
-            let userData = await userService.leaderHomeworkDel(data);
+            await userService.leaderHomeworkDel(data);
             return res.redirect('/');
         } catch (e) {
             next(e);
@@ -560,7 +559,7 @@ class UserController {
     async leaderModalBan(req, res, next) {
         try {
             let data = req.body;
-            let userData = await userService.leaderHomeworkBan(data);
+            await userService.leaderHomeworkBan(data);
             return res.redirect('/');
         } catch (e) {
             next(e);
@@ -583,15 +582,32 @@ class UserController {
         }
     }
 
+//HELP------------------------------------------------------------------------------------------------------------------
+    async adminHelpPage(req, res, next) {
+        try {
+            const {refreshToken} = req.cookies;
+            if (refreshToken) {
+                const user = await userService.admin(refreshToken);
+
+                if (user.status === "admin")
+                    return res.render(createPath("admin-help"));
+                return res.redirect("/");
+            }
+            return res.redirect("/");
+        } catch (e) {
+            next(e);
+        }
+    }
+
 //---------------------------------------------------USERS LIST---------------------------------------------------------
 
 //FIND USER BY SURNAME--------------------------------------------------------------------------------------------------
     async adminPageUsersFind(req, res, next) {
         try {
-            const {refreshToken} = req.cookies;
-            const admin = await userService.admin(refreshToken);
+            // const {refreshToken} = req.cookies;
+            // const admin = await userService.admin(refreshToken);
             let data = req.body;
-            // console.log(data);
+            console.log(data);
             let user = await userService.adminFindUser(data['surname'].toLowerCase());
             if (user === "none")
                 return res.json({status: "none"});
@@ -619,6 +635,25 @@ class UserController {
         }
     }
 
+    async adminUsersClassChange(req, res, next) {
+        try {
+            let class_ = req.body.class;
+            let surname = req.body.surname;
+            let name = req.body.name;
+            return res.json({is: await userService.adminChangeUsersClass(surname, name, class_)});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async adminUsersFileGet(req, res, next) {
+        try {
+            return res.json({link: await userService.adminGetUsersFile()});
+        } catch (e) {
+            next(e);
+        }
+    }
+
 //LIST OF USERS---------------------------------------------------------------------------------------------------------
     async adminUsersList(req, res, next) {
         try {
@@ -634,7 +669,9 @@ class UserController {
     async adminUserPassword(req, res, next) {
         try {
             let data = req.body;
+            console.log(data, " - data");
             let reset = await userService.adminResetPassword(data['surname'], data['name'], data['class']);
+            console.log(reset, " - after reset pass");
             return res.json({newPass: reset});
         } catch (e) {
             next(e);
@@ -675,13 +712,170 @@ class UserController {
         }
     }
 
+    async adminAddFileOfStudents(req, res, next) {
+        try {
+            let file = req.file;
+            res.json({link: await userService.adminAddListOfStudents(file)});
+        } catch (e) {
+            next(e);
+        }
+    }
+
 //-----------------------------------------------TEACHERS---------------------------------------------------------------
+
+//---------------------------------------------GET TEACHERS-------------------------------------------------------------
+    async adminGetTeachers(req, res, next) {
+        try {
+            return res.json({teachers: await userService.adminGetAllTeachers()});
+        } catch (e) {
+            next(e);
+        }
+    }
 
 //-------------------------------------------ADD NEW TEACHER------------------------------------------------------------
     async adminAddTeacher(req, res, next) {
         try {
-            let data = req.body;//?
-            let teacher = await userService.adminAddNewTeacher(data['name'], data['surname'], data['lastname'], data['subject'], data['classroom']);
+            let data = req.body;
+            return res.json({teacher: await userService.adminAddNewTeacher(data['name'], data['surname'], data['lastname'], data['subject'], data['classroom'])});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async adminDelTeacher(req, res, next) {
+        try {
+            let teacher = req.body.teacher;
+            return res.json({teach: await userService.adminDeleteTeacher(teacher)});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async adminFindTeacher(req, res, next) {
+        try {
+            let surname = req.body.surname;
+            return res.json({teachers: await userService.adminTeacherFind(surname)});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async adminAddStudentToTeacher(req, res, next) {
+        try {
+            let data = req.body;
+            let teacher = await userService.adminAddStudentForTeacher(data['student'], data['teacher'], data['subject']);
+            return res.json({teacher: teacher});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async adminDelStudentToTeacher(req, res, next) {
+        try {
+            let data = req.body;
+            let teacher = await userService.adminDelStudentForTeacher(data['student'], data['teacher'], data['subject']);
+            return res.json({teacher: teacher});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async adminAddClassToTeacher(req, res, next) {
+        try {
+            let data = req.body;
+            let teacher = await userService.adminAddClassForTeacher(data['class'], data['teacher'], data['subject']);
+            return res.json({teacher: teacher});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async adminGetTeachersSubjects(req, res, next) {
+        try {
+            let teacher = req.body.teacher;
+            return res.json({subjects: await userService.adminGetTeachSubjects(teacher)});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async adminGetOtherSubjects(req, res, next) {
+        try {
+            let teacher = req.body.teacher;
+            return res.json({subjects: await userService.adminGetSubjects(teacher)});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async adminAddSubjectTeacher(req, res, next) {
+        try {
+            let teacher = req.body.teacher;
+            let subject = req.body.subject;
+            return res.json({subjects: await userService.adminAddSubjectToTeacher(teacher, subject)});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async adminDelSubjectTeacher(req, res, next) {
+        try {
+            let teacher = req.body.teacher;
+            let subject = req.body.subject;
+            return res.json({subjects: await userService.adminDelSubjectToTeacher(teacher, subject)});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async adminTeachersStudents(req, res, next) {
+        try {
+            let data = req.body;
+            //console.log(data, " - data");
+            let students_by_teacher = await userService.adminGetTeachersStudents(data['class'], data['teacher'], data['subject']);
+            let all_students = await userService.adminListOfUsers(data['class']);
+            let other_students = [];
+            if (students_by_teacher.length > 0) {
+                for (let i in all_students) {
+                    let f = true;
+                    for (let j in students_by_teacher) {
+                        if (students_by_teacher[j][0] === all_students[i][0] && students_by_teacher[j][1] === all_students[i][1]) {
+                            f = false;
+                            break;
+                        }
+                    }
+                    if (f) {
+                        other_students.push([all_students[i][0], all_students[i][1], all_students[i][2]]);
+                    }
+                }
+            } else {
+                for (let i in all_students) {
+                    other_students.push([all_students[i][0], all_students[i][1], all_students[i][2]]);
+                }
+            }
+
+            return res.json({students_by: students_by_teacher, other: other_students});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async adminTeacherStudentFind(req, res, next) {
+        try {
+            let surname = req.body.surname;
+            let teacher = req.body.teacher;
+            let subject = req.body.subject;
+            let student = await userService.adminTeacherFindStudent(surname, teacher, subject);
+            return res.json({student: student});
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async adminAddFileOfTeachers(req, res, next) {
+        try {
+            let file = req.file;
+            res.json({is: await userService.adminAddListOfTeachers(file)});
         } catch (e) {
             next(e);
         }
@@ -761,6 +955,7 @@ class UserController {
     async adminTimetableAddClass(req, res, next) {
         try {
             let data = req.body;
+            //console.log(data['class_']);
             let create = await userService.adminAddClass(data['class_']);
             return res.json({class_: create});
         } catch (e) {

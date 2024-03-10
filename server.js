@@ -3,15 +3,13 @@
 require('dotenv').config()
 const express = require("express");
 const path = require("path");
-const bcrypt = require('bcrypt');
-const jwt = require("jsonwebtoken");
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const router = require('./router/index_router');
 const bodyParser = require("body-parser");
 const errorMid = require('./middlewares/error-middleware');
-//const createError = require('http-errors');
+
 //----------------------------------------------------------------------------------------------------------------------
 //основные константы
 
@@ -20,7 +18,6 @@ const jsonParser = express.json();
 
 const createPath = (page) => path.resolve(__dirname, 'views', `${page}.ejs`);
 
-const urlencodedParser = express.urlencoded({extended: false});
 const port = process.env.PORT || 3000;
 const url = 'mongodb://127.0.0.1:27017/test';
 
@@ -56,7 +53,7 @@ async function main() {
     } catch (e) {
         console.log(e);
     }
-};
+}
 
 //end work--------------------------------------------------------------------------------------------------------------
 main(); // is work
