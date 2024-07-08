@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <meta name="color-scheme" content="only light">
+    <link rel="icon" href="img/favicon/Icon.svg">
+    <title>Главная страница старосты</title>
+</head>
+<body>
+<div class="wrapper">
+
+    <%- include partials/header-user.ejs %>
+
+
+    <main class="page">
+        <div class="page__container _container">
+            <div class="page__main-block main-block">
+                <div class="main-block__left-block-user left-block-user">
+                    <div class="left-block-user__function-leader-button function-leader-button">
+                        <button class="function-leader-button__button-add-hometask button-add-hometask _leader-button">
+                            Добавить ДЗ
+                        </button>
+                        <button class="function-leader-button__button-check-hometask button-check-hometask _leader-button">
+                            Проверить ДЗ
+                        </button>
+                        <button class="function-leader-button__button-add-notice button-add-notice _leader-button">
+                            Создать уведомление
+                        </button>
+                        <button class="function-leader-button__button-add-event button-add-event _leader-button">Создать
+                            событие
+                        </button>
+                    </div>
+                    <% if(!isChange){ %>
+                        <%- include partials/log-pass.ejs %>
+                    <% } %>
+                    <div class="left-block-user__leader-notice leader-notice">
+                        <h2 class="leader-notice__title-leader-notice">Уведомление от старост</h2>
+                        <% if (notification !== "none" && notification.length !== 0){ %>
+                            <% for (let i in notification){ %>
+                                <div class="leader-notice__list-leader-notice list-leader-notice">
+                                    <div class="list-leader-notice__leader-notice">
+                                        <%= notification[i] %>
+                                    </div>
+                                </div>
+                        <% }} %>
+                    </div>
+                    <div class="left-block-user__hometask-for-days hometask-for-days">
+                        <h2 class="hometask-for-days__title-hometask-for-days">Дз на ближайшие дни</h2>
+                        <div class="hometask-for-days__list-hometask-for-days list-hometask-for-days">
+                            <% if (homework !== "none") { %>
+                                <% for(let i = 0;i < homework.length;i++){ %>
+                                    <div class="hometask-for-days__hometask-for-day hometask-for-day">
+                                        <div class="hometask-for-day__date"><%= homework[i][0].split(".")[0] + "." + homework[i][0].split(".")[1] %></div>
+                                        <div class="hometask-for-day__subject"><%= homework[i][1].charAt(0).toUpperCase() + homework[i][1].slice(1).replaceAll("_", " ") %></div>
+                                        <div class="hometask-for-day__task"><%= homework[i][2] %></div>
+                                        <% let fileSt = '' %>
+                                        <% for(let file in homework[i][3]){ %>
+                                            <% if ((Number(file) + 1) === homework[i][3].length) {
+                                                fileSt += homework[i][3][file];
+                                            } else {
+                                                fileSt += homework[i][3][file] + ":";
+                                            } %>
+                                        <% } %>
+                                        <% if (fileSt.length > 0){ %>
+                                            <button id="download" value="<%= fileSt %>"
+                                                    class="hometask-for-day__download"></button>
+                                        <% } %>
+                                    </div>
+                            <% } } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-block__right-block right-block">
+                    <div class="right-block__timetable timetable-block">
+                        <h2 class="timetable-block__title">Расписание звонков</h2>
+                        <% let a = new Date(); %>
+                        <% if(a.getDay() === 6){ %>
+                            <% include partials/timetable-saturday.ejs %>
+                        <% }else{ %>
+                            <% include partials/timetable-usual.ejs %>
+                        <% } %>
+                    </div>
+                    <div class="right-block__events events-block">
+                        <h2 class="events-block__title">Лицейские события</h2>
+                        <% if(events){ %>
+                            <% for (let i = 0;i < events.length;i++){ %>
+                                <div class="events-block__event event">
+                                    <div class="event__name"><%= events[i].text %></div>
+                                    <div class="event__date">Дата <%= events[i].date %></div>
+                                    <div class="event__location">Место проведения: <%= events[i].place %></div>
+                                </div>
+                        <% }}else{
+                        } %>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <%- include partials/footer-login.ejs %>
+    </footer>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="js/script.js"></script>
+</body>
+
+</html>

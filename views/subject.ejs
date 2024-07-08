@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <meta name="color-scheme" content="only light">
+
+    <link rel="icon" href="img/favicon/Icon.svg">
+    <title>Предметы</title>
+</head>
+<body>
+<div class="wrapper">
+
+    <% include partials/header-user.ejs %>
+
+    <main class="page">
+        <div class="page__container _container">
+            <div class="page__subjects-block subjects-block">
+
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <% if (header === 'user') { %>
+            <%- include partials/footer-login.ejs %>
+        <% } else if (header === 'header'){ %>
+            <%- include partials/footer.ejs %>
+        <% } %>
+    </footer>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="js/subject.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <meta name="color-scheme" content="only light">
+    <link rel="icon" href="img/favicon/Icon.svg">
+    <title>Расписание</title>
+</head>
+<body>
+<div class="wrapper">
+
+    <% if (header === 'user') { %>
+        <%- include partials/header-user.ejs %>
+    <% } else if (header === 'header'){ %>
+        <%- include partials/header.ejs %>
+    <% } %>
+
+    <main class="page">
+        <div class="page__container _container">
+            <div class="page__main-block main-block">
+                <div class="main-block__timetable-function timetable-function">
+                    <div class="timetable-function__button-timetable button-timetable">
+                        <button class="button-timetable__left active-button">Обычное</button>
+                        <button class="button-timetable__right nonactive-button">Сокращенное</button>
+                    </div>
+                    <div class="timetabel-function__timetable-blocks titmetable-blocks">
+                        <div class="titmetable-blocks__timetable-block timetable-block usual">
+                            <h2 class="timetable-block__title schedule_edition_usual">Расписание звонков</h2>
+                            <% include partials/timetable-usual.ejs %>
+                        </div>
+                        <div class="titmetable-blocks__timetable-block timetable-block anusual">
+                            <h2 class="timetable-block__title schedule_edition_anusual">Расписание звонков</h2>
+                            <% include partials/timetable-saturday.ejs %>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-block__schedule-function schedule-function">
+                    <select class="schedule-function__select-schedule select-schedule">
+                    </select>
+                    <div class="schedule-function__schedule-tables schedule-tables">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <% if (header === 'user') { %>
+            <%- include partials/footer-login.ejs %>
+        <% } else if (header === 'header'){ %>
+            <%- include partials/footer.ejs %>
+        <% } %>
+    </footer>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="js/script.js"></script>
+<script src="js/schedule.js"></script>
+
+</body>
+
+</html>

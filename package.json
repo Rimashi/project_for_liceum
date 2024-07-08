@@ -1,0 +1,42 @@
+{
+  "name": "server_for_liceum",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node ./server.js --port=3000 --host",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.9",
+    "ejs-locals": "^1.0.2",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "fs": "^0.0.1-security",
+    "iconv": "^3.0.1",
+    "iconv-lite": "^0.6.3",
+    "jquery": "^3.7.0",
+    "jschardet": "^3.1.2",
+    "jsonwebtoken": "^9.0.1",
+    "luxon": "^3.4.4",
+    "mongodb": "^5.8.0",
+    "mongoose": "^7.4.4",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
+    "sanitize-filename": "^1.6.3",
+    "xlsx": "^0.18.5",
+    "crypto": "^1.0.1",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

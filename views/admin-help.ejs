@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="only light">
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="icon" href="img/favicon/Icon.svg">
+    <title>Помощь</title>
+</head>
+<body>
+<div class="wrapper">
+    <%- include partials/header-admin.ejs %>
+
+    <main class="page">
+        <div class="page__container _container">
+            <div class="page__information-content information-content">
+                <div class="inforamtion-content__information-choices information-choices">
+                    <button class="information-choices__button-choice choice-active" id="choice-1"
+                            onclick="changeText(1)">Общее
+                    </button>
+                    <button class="information-choices__button-choice" id="choice-2" onclick="changeText(2)">Расписание
+                    </button>
+                    <button class="information-choices__button-choice" id="choice-3" onclick="changeText(3)">События и
+                        Уведомления
+                    </button>
+                    <button class="information-choices__button-choice" id="choice-4" onclick="changeText(4)">Список
+                        пользователей
+                    </button>
+                    <button class="information-choices__button-choice" id="choice-5" onclick="changeText(5)">Учителя
+                    </button>
+                    <button class="information-choices__button-choice" id="choice-6" onclick="changeText(6)">Файлы
+                    </button>
+                </div>
+                <div class="information-content__information-blocks information-blocks choice-active"
+                     id="information-blocks-1">
+                    <div class="information-blocks__information-block information-block-full">
+
+                        <h2 class="information-block__title-information title-information">Небольшое отступление</h2>
+                        <div class="information-block__information-text information-text">
+                            Увы и ах, это наш первый большой проект, поэтому заранее извиняюсь за документацию, если
+                            что-то будет не понятно. Однако я постараюсь сделать, чтобы было иначе..хоть немного). В
+                            общем, ориентируйся при помощи кнопок сверху (по разделам) и по небольшому плану (по
+                            подразделам). <br>
+                            Что ж, начнем)
+                        </div>
+                    </div>
+
+                    <div class="information-blocks__information-block information-block-full">
+
+                        <h2 class="information-block__title-information title-information">Содержание</h2>
+                        <div class="information-block__information-text information-text">
+                            <ol class="information-text__information-list information-list">
+                                <p>- Концепция</p>
+                                <p>- Как оно работает и почему</p>
+                                <p>- Какие файлы нужны для "содержания" сайта</p>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="information-blocks__information-block information-block-full">
+
+                        <h1 class="information-block__title-information title-information">Концепция</h1>
+                        <div class="information-block__information-text information-text">
+                            В основе идеи лежало то, что дневник устарел, как минимум морально, и каждый день спрашивать
+                            дз у кого-то из людей ну такое...
+                            также хотелось бы, чтобы можно было смотреть расписание по классам просто, удобно и не
+                            бегать фотать его в начале года и при каждом изменении.
+                            Что касается новичков, мы подумали, что им очень облегчит жизнь карта лицея, о чем они
+                            кстати не раз говорили. Попутно мы поняли, что всех учителей и их расположение знать
+                            сложновато и надо бы с этим что-то сделать...так мы придумали "Предметы". <br>
+                            Так примерно и образовалась общая концепция. А самое главное, чтобы в ней все выполняли
+                            только ученики, максимум просили бы помощи у учителей. И еще, т.к. чем младше класс, его
+                            сложнее контролировать и основной поток людей приходит с 8 по 10 классы, то мы решили
+                            сделать так, что у нас участвуют классы с 8 по 11 включительно.
+                            <br>
+                            <br>
+                            Итого. Мы хотели создать сайт, который впитал бы в себя электронный журнал, расписание и
+                            помощник для ориентирования на местности. И конечно это все не будет работать без
+                            взаимоотношений, без которых сейчас в нашем мире никуда. При помощи этих взаимоотношений
+                            этот сайт и существует, и если ты это читаешь, то скорее всего и сам это прекрасно знаешь)
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h2 class="information-block__title-information title-information">А как оно вообще работает
+                            то...?</h2>
+                        <div class="information-block__information-text information-text">
+                            <div class="information-block__information-text information-text">
+                                Я не буду вдаваться в подробности, т.к. это лишь "Общее", если нужна конкретика, ищи это
+                                в последней вкладке.
+                                <br>
+                                Сверху есть вкладки, в которых расписано подробно, как и что работает. Но если
+                                вкратце.<br>
+                                На главной странице человеку доступна общая информация по сайту (вкладка "Помощь"),
+                                краткая информация про лицей и проект (вкладка "Информация о лицее"), расписание звонков
+                                на сегодня (исключая воскресенье), также вкладка с самим расписанием, где посетители
+                                могут посмотреть расписание всех классов, добавленных на текущий момент, и вкладка
+                                "Карта" (название, думаю, говорит само за себя), также можно увидеть предстоящие
+                                события.
+                                <br>
+                                Если ученик авторизован, то он является либо простым учеником, который может
+                                просматривать расписание своей параллели, добавить дз и посмотреть собственно. Если же
+                                ученик - модератор, то ему доступно все то же, что и ученику + он может проверить дз,
+                                добавить файл, добавлять уведомления и события. Если ученик является модератором, то
+                                предполагается, что он активный и ответственный человек, способный модерировать
+                                информацию для своего класса.
+                                <br>
+                                <br>
+                                Собственно, что происходит? Ученик добавляет дз, затем, модератор может проверить дз
+                                ученика(-ов). Модератор может ободрить работу, что означает, эта работа сто процентов
+                                отобразится в дальнейшем у учеников в определенную дату и в день перед сдачей. Модератор
+                                может отклонить работу т.е. удалить ее и все.
+                                Модератор может заБАНить человека, т.е. удалить работу и запретить неделю добавлять дз
+                                (ограничения снимутся сами).<br>
+                                <ol class="information-text__information-list information-list">
+                                    <li class="information-list__quest">
+                                        А что если модератор не одобрил работу?
+                                    </li>
+                                    <p class="information-list__answer">- Там есть небольшой алгоритмик выбора. </p>
+
+                                    <li class="information-list__quest">Что будет, если добавят несколько дз?
+                                    </li>
+                                    <p class="information-list__answer">- Оно просто соединится в одно сообщение.
+                                        Согласен, не очень практично, если будет смысл одинаков, но словами написан
+                                        по-другому, то получится повторение. Но на этот случай и есть модераторы, вот
+                                        так...</p>
+
+                                    <li class="information-list__quest">Что за алгоритм и как он работает?
+                                    </li>
+                                    <p class="information-list__answer">- Что ж) алгоритм не идеален, но вот как
+                                        работает. У каждого пользователя есть рейтинг (нет, мы не дадим миска риса и
+                                        кошка жена, мы не в Китае :/ ), этот рейтинг основывается на кол-ве правильно
+                                        добавленного дз.
+                                        Если модератор одобрил дз, человеку +1, если человека забанили, то -1, если же
+                                        просто удалили дз, то ничего не будет.
+                                        Итак, вот как выбираются дз: Мы смотрим все дз по одному предмету на одну дату,
+                                        берем и находим среднее арифметическое пользователей по этому предмету и дате.
+                                        Те, чей рейтинг выше ср. Арифметического покажут свое дз, оно также склеится и,
+                                        увы, не пройдет модерацию. Однако такая система начинает работать если у
+                                        человека рейтинг хотя бы равен 10. Иначе дз не будут отображаться, только после
+                                        прохождения модерации.</p>
+
+                                    <li class="information-list__quest">А если дз никто не модерировал и рейтинг всех
+                                        людей проходит, ну там если хотя бы у двух-трех человек дз проходит отбор по
+                                        алгоритму?
+                                    </li>
+                                    <p class="information-list__answer">- Тогда сообщение просто склеится в одно.</p>
+
+                                    <li class="information-list__quest">Можно ли "накрутить" рейтинг?
+                                    </li>
+                                    <p class="information-list__answer">- Да, можно, но я ЗАПРЕЩАЮ и АСУЖДАЮ подобное!
+                                        Как раз поэтому, ты, как модератор должен следить за подобным и пресекать, то
+                                        бишь отбирать модерки.</p>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+
+                        <div class="information-block__information-text information-text">
+                            <h2 class="information-block__title-information title-information">Вероятное развитие</h2>
+                            <div class="information-block__information-text information-text">
+                                Если вы решили написать приложение/бота или еще что-то, то либо обратитесь к гитхабу и
+                                гляньте оригинальный код <a href="https://github.com/Rimashi">здесь</a>.
+                                (проект называется “server_for_liceum”)
+                                <br>
+                                Или напишите мне лично, я вам постараюсь помочь.
+                                (<a href="https://t.me/rimashi_26">телеграмм</a>)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="information-content__information-blocks information-blocks" id="information-blocks-2">
+                    <div class="information-blocks__information-block information-block-full">
+                        <h2 class="information-block__title-information title-information">Расписание</h2>
+                        <div class="information-block__information-text information-text">
+
+                            Итак, расписание. Переходя на данную вкладку вы попадаете в максимально упрощенный, на
+                            мой взгляд, редактор расписания для классов.<br>
+                            <div class="information-text__information-img-2 information-img-2">
+                                <img src="../img/admin/admin-help/adminTimetable.png" alt="страничка расписания"
+                                     class="_img-information"
+                                     style="height: 400px;max-width:none">
+                            </div>
+                            Что касается расписания звонков, скажу сразу, менять только в файле
+                            "timetable-usual.ejs" (меняет расписание звонков в будни), "timetable-saturday.ejs"
+                            (меняет расписание звонков в сокращенные дни то бишь в субботу). При изменении
+                            расписания автоматически подставятся везде, где необходимо. Путь до файлов:<br> cd ~<br>
+                            cd /sites/server_for_liceum/partials <br>потом надеюсь на твою компьютерную
+                            грамотность).<br>
+                            Расписание обычно уже висит 1 сентября, поэтому можно просто смотреть от туда, а если будут
+                            какие либо изменения, об этом скажет классРук. <br>
+                            <br>
+                            На случай, если все слетело или появился новый предмет/класс. Смотрим модалку "Добавить
+                            предмет" и "Добавить класс".
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Модальное окно с
+                            предметами</h3>
+                        <div class="information-block__information-text information-text">
+                            Если не добавить предмет, то
+                            не получится его поставить в расписание. Если же удалить от туда предмет, просто не
+                            сможешь
+                            больше его поставить в расписание, но в текущем расписании и во сех остальных
+                            списках по
+                            типу того, что этот предмет ведет какой-то учитель у кого-то он(предмет)
+                            останется.<br>
+                            По поводу ввода. Смотри визуально, если слишком длинное и не влезает, то сокращай
+                            (13 букв
+                            текущий предел)
+                            Если предмет сдвоенный, т.е. в это время немецкий и французский, то пиши через слеш
+                            ->
+                            "Немец/Франц". Если в предмете несколько слов, то пиши просто через пробел -> "Англ.
+                            язык".
+
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Модальное окно с
+                            классами</h3>
+                        <div class="information-block__information-text information-text">
+                            Ну тут по аналогии с добавлением предмета. Если предмет/класс есть, ты его не
+                            сможешь
+                            добавить.
+                            По функционалу аналогично с предметами. По поводу формата ввода, добавления. Вообще
+                            там есть
+                            защита от дурака, однако лучше писать так -> "11в", т.е. писать слитно и с маленькой
+                            буквы.
+                            Да, можно писать через нижнее подчеркивание -> "11_в" или писать с большой
+                            буквы, или же
+                            с пробелами. Однако лучше просто соответствовать образцу, так будет и тебе проще и
+                            серверу).
+                            Если удалить класс, то все его ученики, расписание и прочее тоже удалится!
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <div class="information-block__information-text information-text">
+
+                            <h2 class="information-block__title-information title-information">Селектор класса</h2>
+                            Просто выбираете класс и загружается расписание выбранного класса
+                            В самом расписании находятся тоже селекторы, так что вы можете нажать и выбрать предмет из
+                            списка, так он заменится на выбранный вами автоматически после выбора.
+                        </div>
+                    </div>
+
+                </div>
+                <div class="information-content__information-blocks information-blocks" id="information-blocks-3">
+                    <div class="information-blocks__information-block information-block-full">
+
+                        <div class="information-block__information-text information-text">
+                            <h2 class="information-block__title-information title-information">События</h2>
+                            <div class="information-text__information-img-2 information-img-2">
+                                <img src="../img/admin/admin-help/adminEvents.png" alt="События"
+                                     class="_img-information"
+                                     style="height: 200px;max-width:none">
+                            </div>
+                            <div class="information-block__information-text information-text">
+                                В целом, события создаются как у всех модераторов и более детальную информацию вы можете
+                                изучить в помощи для всех. Из особенностей, вы можете удалить событие.<br>
+                                <br>
+                                Как работают события?<br>
+                                Если у событий одинаковая дата и место проведения, то текст события "склеивается", т.е.
+                                вместо одного события создается одно "общее".
+                            </div>
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Уведомления</h3>
+                        <div class="information-text__information-img-2 information-img-2">
+                            <img src="../img/admin/admin-help/adminNotify.png" alt="Уведомления"
+                                 class="_img-information"
+                                 style="width: auto;max-width:none">
+                        </div>
+                        <div class="information-block__information-text information-text">
+                            Уведомления также, создаются как у модераторов и про это вы тоже можете почитать в
+                            помощи для всех. Однако есть одна особенность, данное уведомление отображается у всех
+                            классов. Вы можете также удалять любые уведомления, для удобства вы можете выбрать в
+                            селекторе класс, в котором хотите просмотреть или удалить событие. Прощу заметить, что
+                            удаляя свои уведомления, вы удаляете их не для определенного класса, а у всех.
+                        </div>
+
+                    </div>
+                </div>
+                <div class="information-content__information-blocks information-blocks" id="information-blocks-4">
+                    <div class="information-blocks__information-block information-block-full">
+
+                        <div class="information-block__information-text information-text">
+                            <h2 class="information-block__title-information title-information">Список пользователей</h2>
+                            <div class="information-text__information-img-2 information-img-2">
+                                <img src="../img/admin/admin-help/studentsList.png" alt="список пользователей"
+                                     class="_img-information"
+                                     style="height: 250px;max-width:none">
+                            </div>
+                            <div class="information-block__information-text information-text">
+                                На данной вкладке вы можете просматривать пользователей, изменять различные параметры и
+                                добавлять пользователей.
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Поиск</h3>
+                        <div class="information-block__information-text information-text">
+                            Поиск работает по фамилии ученика, неважно с маленькой или большой буквы. Если вы захотите
+                            снова увидеть весь список, то либо откройте вновь эту же вкладку или воспользуйтесь
+                            селектором классов.
+
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Селектор класса</h3>
+                        <div class="information-block__information-text information-text">
+                            Вы можете просматривать учеников отдельных классов, в общем сортировать список учеников.
+
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Добавление пользователя</h3>
+                        <div class="information-block__information-text information-text">
+                            В данном модальном окне, вы можете добавить пользователя. Заполните все соответствующие
+                            поля. Вы можете придумать пароль сами или воспользоваться генерацией - нажать на кнопку, в
+                            таком случае сгенерируется случайный уникальный шестизначный пароль. Пользователь в любом
+                            случае сможет поменять потом пароль.
+                            Вы можете выбрать роль учащегося, подробнее про роли можно посмотреть в общей “помощи”.
+                            <br>
+                            <br>
+
+                            <b>!!!</b> Внимательно просмотрите наличие похожих фамилий, если есть похожие фамилии, то
+                            уведомите учеников о том, что пользователям необходимо входить в место для логина фамилию и
+                            имя пользователя <b>!!!</b>
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Список учащихся</h3>
+                        <div class="information-block__information-text information-text">
+                            Итак, перед вами список, отсортированный в алфавитном порядке. У каждого ученика вы можете
+                            изменить класс, роль, сбросить пароль или удалить учащегося.
+                            <br>
+                            По поводу сброса пароля. При сбросе пароля, сбрасывается еще и логин учащегося. Вам
+                            высветиться уведомление, в котором будет написан временный пароль, такой же как и при
+                            добавлении ученика, тоже уникальный и шестизначный. Ограничений по сбросу нет. Сбрасывать
+                            можете только вы. Главное объясните человеку, что после сброса, он не сможет зайти по
+                            прошлому логину и паролю. Только после входа по новым данным, он сможет задать свои
+                            параметры для входа. Ну в общем как при первом входе.
+
+
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Загрузка файла с
+                            учениками</h3>
+                        <div class="information-block__information-text information-text">
+                            По поводу того, где взять файл, сказано в разделе “Прочее”. Я надеюсь вы преобразовали файлик
+                            по образцу, после его загрузки, у вас добавятся ученики в общий список и появится “скрепка”
+                            или обновится. Если вы нажмете на скрепку, то скачается txt файлик, в котором написаны логин
+                            и пароль к конкретному ученику. Как распространять эти данные решать вам. Можете бота
+                            написать, если так проще). Файлик этот хранится неделю, после этого он удаляется. Во-первых,
+                            чтобы не забивать сервер, а во-вторых, мне кажется, что спустя неделю данные уже неактуальны
+                            и данная иконка будет лишь напрягать.
+                            <br>
+                            Еще хотелось сказать, что при добавлении ученика он прогоняется через список учителей. Т.е.
+                            у каждого учителя есть класс, который они ведут целиком (не подгруппы), в таком случае
+                            ученик автоматически добавляется к преподавателю. Но я так и не понял, корректно ли работает
+                            функция, потому что в большинстве случаев она срабатывала, но иногда бывали “выбросы”,
+                            поэтому лучше руками проставлять нового ученика или прочитать последний абзац во вкладке
+                            “учителя”).
+                        </div>
+                    </div>
+                </div>
+                <div class="information-content__information-blocks information-blocks" id="information-blocks-5">
+                    <div class="information-blocks__information-block information-block-full">
+
+                        <div class="information-block__information-text information-text">
+                            <h2 class="information-block__title-information title-information">Учителя</h2>
+                            <div class="information-text__information-img-2 information-img-2">
+                                <img src="../img/admin/admin-help/teachersList.png" alt="список учителей"
+                                     class="_img-information"
+                                     style="height: 250px;max-width:none">
+                            </div>
+                            <div class="information-block__information-text information-text">
+                                Данная вкладка довольно похожа на вкладку с учениками.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Поиск</h3>
+                        <div class="information-block__information-text information-text">
+                            Работает по фамилии учителя.
+
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Добавить учителя</h3>
+                        <div class="information-block__information-text information-text">
+                            Заполните все поля, если кабинетов несколько можно записать через “палку” -> “404 | 405”
+                            лучше всего с пробелами, чтобы повысить читаемость. Предметы учителя выбираются из списка
+                            всех предметов. Данный список находится как раз в расписании.
+
+
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Список преподавателей</h3>
+                        <div class="information-block__information-text information-text">
+                            Этот список отсортирован в алфавитном порядке. Вы можете увидеть три кнопки: “предметы”,
+                            “ученики” и “удалить”. Про кнопку удаления думаю все понятно.
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Предметы</h3>
+                        <div class="information-block__information-text information-text">
+                            В данном модельном окне к определенному преподавателю можно добавить предмет или удалить. В
+                            дальнейшем мы сможем добавлять учеников к определенному преподавателю по выбранному предмету
+                            из списка.
+
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Ученики</h3>
+                        <div class="information-block__information-text information-text">
+                            В данном модальном окне можно добавить ученика к преподавателю или удалить.
+                            При нажатии вы можете выбрать предмет из списка, который вы настраивали в модалке на
+                            предметы у данного преподавателя. Также вы можете добавить весь класс к данному
+                            преподавателю. Для этого из селектора с классами выберите определенный класс и нажмите
+                            “Добавить класс”. Также вы можете найти ученика по фамилии при помощи поиска. Ниже список
+                            учеников. Напротив учеников кнопки “добавить” и “удалить”(они делают соответствующие им
+                            вещи). Те ученики, которые добавлены к учителю, отсортированы по алфавиту и напротив их
+                            фамилий стоит кнопка “удалить”.
+                            А те, у кого напротив кнопка “добавить”, не добавлены к данному преподавателю на данный
+                            предмет. Они тоже отсортированы по алфавиту.
+                            <br>
+
+
+                            Объясню примерно, как “работают” учителя, если вы не поймете, ничего страшного, в процессе
+                            станет яснее.
+                            <br>
+
+                            Существует объект учитель. У него есть данные - ФИО, кабинет и два массива. Первый массив
+                            содержит предметы, которые учитель ведет. Второй же массив скорее является словарем, где
+                            ключ это id студента, а значение - массив предметов, которые ведет у него текущий учитель.
+                            <br>
+                            <br>
+
+                            пример такого словаря:
+                            42342: [ “математика”, “география” ]
+
+
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h3 class="information-block__title-information title-information">Файлик с учителями</h3>
+                        <div class="information-block__information-text information-text">
+                            Надеюсь у вас есть уже отформатированный эксель документ, как это описано во вкладке
+                            “Прочее”.
+                            Работает это так. Вы загружаете файлик, в процессе у вас появляется/добавляется список
+                            учителей. Также, если предмета, который идет с данным преподавателем, не было, то он
+                            добавится в базу данных автоматически, в дальнейшем вы сможете удалить предмет. Также при
+                            добавлении данного файлика, учителя автоматически прописываются у определенного класса. Т.е.
+                            если, к примеру, Таллерова ведет литературу у 9в одна, то весь 9в получит учителя Таллерову
+                            и предмет литературу. Однако если учителей по одному предмету несколько, то в таком случае
+                            преподаватель, как и предмет, “не указан” и придется это проставлять руками.
+                            <br>
+                            Есть такая особенность, что при добавлении учеников (особенно списком), они не всегда
+                            добавляются к учителям автоматически. Можно взять и просто добавить снова файлик с
+                            учителями, он по-сути обновит бд. Т.е. если учитель ведет у всего класса, то весь класс к
+                            нему добавится автоматически. Однако, если вы удаляли предметы, то они снова добавятся.
+                            <br>
+                            Проворачивайте такие “фокусы” только в том случае, если сервер не сильно нагружен, да это
+                            небольшая нагрузка, но все же нагрузка.
+                        </div>
+
+                    </div>
+                </div>
+                <div class="information-content__information-blocks information-blocks" id="information-blocks-6">
+                    <div class="information-blocks__information-block information-block-full">
+                        <h2 class="information-block__title-information title-information">Списки учеников</h2>
+                        <div class="information-block__information-text information-text">
+                            <div class="information-block__information-text information-text">
+                                Это ...довольно болезненная темка...Список учеников можно получить у Софьи Львовны, она
+                                имеет доступ к журналу и может сделать выборку.
+                                Документ должен выглядеть так:
+                                <div class="information-text__information-img-2 information-img-2">
+                                    <img src="../img/admin/admin-help/studentsExcel.png" alt="пример эксель доков для списка учеников" class="_img-information"
+                                         style="height: 200px;max-width:none">
+                                </div>
+                                Итак, поля:
+                                <ol class="information-text__information-list information-list">
+                                    <p class="information-list__answer">- "№" - ситуативно, если останется ну и ладно.
+                                        Ни на что не влияет.</p>
+
+                                    <p class="information-list__answer">- "фамилия" - Название столбца Обязательно с
+                                        маленькой
+                                        буквы! Иначе будешь сам перезапускать сервер. Саму фамилию без разницы как
+                                        писать собственно как и имя.</p>
+
+                                    <p class="information-list__answer">- "имя" - Тоже обязательно с маленькой
+                                        буквы!.</p>
+
+                                    <p class="information-list__answer">- "класс" - Название столбца тоже только с
+                                        маленькой буквы! В остальном должно иметь формат "цифра_класса_Буква_класса".
+                                        Слитно и с маленькой буквы - "11в".</p>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="information-blocks__information-block information-block-full">
+                        <h2 class="information-block__title-information title-information">Учителя</h2>
+                        <div class="information-block__information-text information-text">
+                            <div class="information-block__information-text information-text">
+                                Самый больной документ.... За ним нужно сходить к Наумовой Татьяне Николаевне в 315
+                                кабинет или на кафедру обществоведения (402 кабинет). Итак, получили мы документик,
+                                теперь надо его как-то преобразовать в эксель....
+                                Качаем "asc timetables". Я не помню откуда качал конкретно, но вроде с этих сайтов:
+                                "https://1soft.space/en/asc-timetables/" и "https://1progs.pro/asc-timetables/". <br>
+                                Следуем там инструкциям и тд и тп. Но на всякий случай, потом лучше скачать бесплатный
+                                dr.Web и выполнить проверку компа. Открываем программу, там открываем файл и...падаем в
+                                обморок. Заходим в "Файл", тыкаем импорт и выбираем поля:
+                                Все названия полей писать также, как ниже в определении.
+                                Документ должен выглядеть так:
+                                <div class="information-text__information-img-2 information-img-2">
+                                    <img src="../img/admin/admin-help/teachersExcel.png" alt="пример эксель доков для списка учителей" class="_img-information"
+                                         style="height: 200px;max-width:none">
+                                </div>
+                                Итак, поля:
+                                <ol class="information-text__information-list information-list">
+                                    <p class="information-list__answer">- "кабинет" - это список кабинетов, всю Физ-ру
+                                        заменяем на "спорт зал", если кабинетов несколько то ставим "палки". Т.е.
+                                        выглядит это так:
+                                        "404 | 405", если там буквы, все нормально, оставляем.</p>
+
+
+                                    <p class="information-list__answer">- "класс" - это то, у какого класса ведет данный
+                                        преподаватель. Оставить просто с маленькой буквой, без пробелов.</p>
+
+                                    <p class="information-list__answer">- "предмет" - Предмет я не трогал. Если такого
+                                        предмета в бд нет, то он добавится сам, поэтому нужен он или нет решай сам, я бы
+                                        оставил.</p>
+
+                                    <p class="information-list__answer">- "ФИО" - Преподы повторяются, тк ведут у разных
+                                        классов, что логично. Этот столбец я тоже никак не менял и тебе не советую.</p>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <%- include partials/footer-login.ejs %>
+    </footer>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="../js/script.js"></script>
+</body>
+
+</html>
